@@ -44,13 +44,13 @@
 
   .star-count .number {
     color: #FFD700;
-    font-size: 3.5rem;
+    font-size: 5rem;
     font-weight: bold;
     text-shadow: 0 0 20px rgba(255,215,0,0.5);
   }
 
   .star-count .star-icon {
-    font-size: 2.5rem;
+    font-size: 3.5rem;
     vertical-align: middle;
   }
 
@@ -58,9 +58,9 @@
     background: linear-gradient(145deg, #FFD700, #FFA500);
     border: none;
     border-radius: 50%;
-    width: 90px;
-    height: 90px;
-    font-size: 2.8rem;
+    width: 110px;
+    height: 110px;
+    font-size: 3.5rem;
     cursor: pointer;
     box-shadow: 0 6px 20px rgba(255,165,0,0.5);
     transition: all 0.2s;
@@ -132,7 +132,7 @@
   }
 
   .star-display .star {
-    font-size: 2rem;
+    font-size: 3rem;
     animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     cursor: default;
     transition: transform 0.2s;
@@ -526,6 +526,14 @@
     <div class="stars-needed" id="pips-pool"></div>
     <button class="claim-btn locked" id="btn-pool" onclick="claimReward('pool', 5)">חסרים 5 כוכבים</button>
   </div>
+
+  <div class="reward-card" id="card-puzzle">
+    <span class="emoji">&#129513;</span>
+    <div class="name">פאזל!</div>
+    <div class="cost"><span class="star-cost">&#11088; 5 כוכבים</span></div>
+    <div class="stars-needed" id="pips-puzzle"></div>
+    <button class="claim-btn locked" id="btn-puzzle" onclick="claimReward('puzzle', 5)">חסרים 5 כוכבים</button>
+  </div>
 </div>
 
 <div class="history">
@@ -560,6 +568,7 @@
     pizza:  { name: 'פיצה', emoji: '&#127829;', cost: 3 },
     movie:  { name: 'סרט ופופקורן', emoji: '&#127916;&#127871;', cost: 4 },
     pool:   { name: 'בריכה וגלידה', emoji: '&#127946;&#127848;', cost: 5 },
+    puzzle: { name: 'פאזל', emoji: '&#129513;', cost: 5 },
   };
 
   let state = loadState();

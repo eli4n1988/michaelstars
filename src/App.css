@@ -1,8 +1,25 @@
+/* ── Google Font ── */
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap');
+
+/* ── Reset ── */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* ── CSS Custom Properties ── */
+:root {
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --gold: #FFD700;
+  --gold-shadow: rgba(255, 215, 0, 0.5);
+  --card-radius: 24px;
+  --btn-radius: 50px;
+}
+
+/* ── Body / Animated Background ── */
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: 'Rubik', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #b24592 50%, #f64f59 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 12s ease infinite;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -11,35 +28,63 @@ body {
   overflow-x: hidden;
 }
 
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ── Title ── */
 h1 {
   color: #fff;
   font-size: 2.5rem;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  font-weight: 700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   margin-bottom: 10px;
   text-align: center;
 }
 
+/* ── Star Counter — Rainbow Glow Border ── */
 .star-count {
-  background: rgba(255,255,255,0.2);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 15px 40px;
+  background: rgba(30, 20, 60, 0.65);
+  backdrop-filter: blur(12px);
+  border-radius: var(--card-radius);
+  padding: 18px 44px;
   margin-bottom: 25px;
   text-align: center;
-  border: 2px solid rgba(255,255,255,0.3);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  position: relative;
+}
+
+.star-count::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: calc(var(--card-radius) + 3px);
+  background: linear-gradient(90deg, #ff0000, #ff8800, #ffdd00, #00ff00, #0088ff, #8800ff, #ff0000);
+  background-size: 300% 100%;
+  animation: borderGlow 4s linear infinite;
+  z-index: -1;
+}
+
+@keyframes borderGlow {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
 }
 
 .star-count .label {
-  color: rgba(255,255,255,0.9);
+  color: rgba(255, 255, 255, 0.9);
   font-size: 1.1rem;
   margin-bottom: 5px;
+  font-weight: 500;
 }
 
 .star-count .number {
-  color: #FFD700;
+  color: var(--gold);
   font-size: 5rem;
-  font-weight: bold;
-  text-shadow: 0 0 20px rgba(255,215,0,0.5);
+  font-weight: 700;
+  text-shadow: 0 0 24px var(--gold-shadow);
 }
 
 .star-count .star-icon {
@@ -47,6 +92,7 @@ h1 {
   vertical-align: middle;
 }
 
+/* ── Add Star Button — Ring Pulse ── */
 .add-star-btn {
   background: linear-gradient(145deg, #FFD700, #FFA500);
   border: none;
@@ -55,8 +101,8 @@ h1 {
   height: 110px;
   font-size: 3.5rem;
   cursor: pointer;
-  box-shadow: 0 6px 20px rgba(255,165,0,0.5);
-  transition: all 0.2s;
+  box-shadow: 0 6px 20px rgba(255, 165, 0, 0.5);
+  transition: all 0.3s var(--spring);
   margin-bottom: 0;
   position: relative;
   display: flex;
@@ -64,15 +110,31 @@ h1 {
   justify-content: center;
 }
 
+.add-star-btn::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 3px solid var(--gold);
+  opacity: 0;
+  animation: ringPulse 2s ease-out infinite;
+}
+
+@keyframes ringPulse {
+  0%   { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
 .add-star-btn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 8px 30px rgba(255,165,0,0.7);
+  transform: scale(1.12);
+  box-shadow: 0 8px 30px rgba(255, 165, 0, 0.7);
 }
 
 .add-star-btn:active {
-  transform: scale(0.95);
+  transform: scale(0.92);
 }
 
+/* ── Remove Star Button ── */
 .remove-star-btn {
   background: linear-gradient(145deg, #ff6b6b, #ee5a24);
   border: none;
@@ -81,8 +143,8 @@ h1 {
   height: 60px;
   font-size: 1.6rem;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(238,90,36,0.4);
-  transition: all 0.2s;
+  box-shadow: 0 4px 15px rgba(238, 90, 36, 0.4);
+  transition: all 0.3s var(--spring);
   position: relative;
   display: flex;
   align-items: center;
@@ -90,30 +152,25 @@ h1 {
 }
 
 .remove-star-btn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 20px rgba(238,90,36,0.6);
+  transform: scale(1.12);
+  box-shadow: 0 6px 20px rgba(238, 90, 36, 0.6);
 }
 
 .remove-star-btn:active {
-  transform: scale(0.95);
+  transform: scale(0.92);
 }
 
-.remove-star-btn .tooltip {
-  position: absolute;
-  bottom: -30px;
-  font-size: 0.85rem;
-  color: rgba(255,255,255,0.8);
-  white-space: nowrap;
-}
-
+/* ── Tooltips ── */
+.remove-star-btn .tooltip,
 .add-star-btn .tooltip {
   position: absolute;
   bottom: -30px;
   font-size: 0.85rem;
-  color: rgba(255,255,255,0.8);
+  color: rgba(255, 255, 255, 0.8);
   white-space: nowrap;
 }
 
+/* ── Star Grid ── */
 .star-display {
   display: grid;
   grid-template-columns: repeat(7, auto);
@@ -126,9 +183,9 @@ h1 {
 
 .star-display .star {
   font-size: 3rem;
-  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: popIn 0.4s var(--spring);
   cursor: default;
-  transition: transform 0.2s;
+  transition: transform 0.3s var(--spring);
 }
 
 .star-display .star:hover {
@@ -136,10 +193,11 @@ h1 {
 }
 
 @keyframes popIn {
-  0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+  0%   { transform: scale(0) rotate(-180deg); opacity: 0; }
   100% { transform: scale(1) rotate(0deg); opacity: 1; }
 }
 
+/* ── Rewards Grid ── */
 .rewards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -149,20 +207,41 @@ h1 {
   margin-bottom: 30px;
 }
 
+/* ── Reward Cards — Colorful Top Accent Strip ── */
 .reward-card {
-  background: rgba(255,255,255,0.95);
-  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: var(--card-radius);
   padding: 25px;
   text-align: center;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-  transition: all 0.3s;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s var(--spring);
   position: relative;
   overflow: hidden;
 }
 
+.reward-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  border-radius: var(--card-radius) var(--card-radius) 0 0;
+}
+
+.reward-card:nth-child(1)::before  { background: linear-gradient(90deg, #ff6b6b, #ffa500); }
+.reward-card:nth-child(2)::before  { background: linear-gradient(90deg, #667eea, #764ba2); }
+.reward-card:nth-child(3)::before  { background: linear-gradient(90deg, #00c9ff, #92fe9d); }
+.reward-card:nth-child(4)::before  { background: linear-gradient(90deg, #f7971e, #ffd200); }
+.reward-card:nth-child(5)::before  { background: linear-gradient(90deg, #e91e63, #ff5252); }
+.reward-card:nth-child(6)::before  { background: linear-gradient(90deg, #11998e, #38ef7d); }
+.reward-card:nth-child(7)::before  { background: linear-gradient(90deg, #fc5c7d, #6a82fb); }
+.reward-card:nth-child(8)::before  { background: linear-gradient(90deg, #f953c6, #b91d73); }
+.reward-card:nth-child(9)::before  { background: linear-gradient(90deg, #00b09b, #96c93d); }
+
 .reward-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.22);
 }
 
 .reward-card .emoji {
@@ -173,7 +252,7 @@ h1 {
 
 .reward-card .name {
   font-size: 1.4rem;
-  font-weight: bold;
+  font-weight: 700;
   color: #333;
   margin-bottom: 8px;
 }
@@ -185,7 +264,7 @@ h1 {
 }
 
 .reward-card .cost .star-cost {
-  color: #FFD700;
+  color: var(--gold);
 }
 
 .reward-card .stars-needed {
@@ -202,62 +281,75 @@ h1 {
   line-height: 22px;
 }
 
+/* ── Pips — Amber Empty, Bouncy Filled ── */
 .reward-card .pip.filled {
   filter: none;
+  animation: pipFill 0.4s var(--spring);
 }
 
 .reward-card .pip.empty {
-  filter: grayscale(100%);
-  opacity: 0.3;
+  filter: grayscale(80%) sepia(30%) saturate(200%) hue-rotate(-10deg);
+  opacity: 0.35;
 }
 
+@keyframes pipFill {
+  0%   { transform: scale(0); }
+  60%  { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+/* ── Claim Button ── */
 .claim-btn {
   border: none;
-  border-radius: 30px;
+  border-radius: var(--btn-radius);
   padding: 12px 30px;
   font-size: 1.1rem;
-  font-weight: bold;
+  font-weight: 700;
+  font-family: inherit;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s var(--spring);
   color: #fff;
 }
 
 .claim-btn.available {
   background: linear-gradient(145deg, #4CAF50, #45a049);
-  box-shadow: 0 4px 15px rgba(76,175,80,0.4);
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
   animation: pulse 2s infinite;
 }
 
 .claim-btn.available:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(76,175,80,0.6);
+  transform: scale(1.08);
+  box-shadow: 0 6px 22px rgba(76, 175, 80, 0.6);
 }
 
+/* ── Claim Locked — Warm Amber/Wheat ── */
 .claim-btn.locked {
-  background: #ccc;
+  background: linear-gradient(145deg, #d4a853, #c8a24e);
   cursor: not-allowed;
-  color: #999;
+  color: #6b4f1d;
 }
 
 @keyframes pulse {
-  0%, 100% { box-shadow: 0 4px 15px rgba(76,175,80,0.4); }
-  50% { box-shadow: 0 4px 25px rgba(76,175,80,0.7); }
+  0%, 100% { box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4); }
+  50%      { box-shadow: 0 4px 25px rgba(76, 175, 80, 0.7); }
 }
 
+/* ── History — Deeper Frost + Gold Accent ── */
 .history {
-  background: rgba(255,255,255,0.15);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(16px);
+  border-radius: var(--card-radius);
   padding: 20px 30px;
   width: 100%;
   max-width: 850px;
-  border: 2px solid rgba(255,255,255,0.2);
+  border: 2px solid rgba(255, 215, 0, 0.25);
   margin-bottom: 20px;
 }
 
 .history h2 {
   color: #fff;
   font-size: 1.3rem;
+  font-weight: 700;
   margin-bottom: 12px;
   text-align: center;
 }
@@ -269,12 +361,18 @@ h1 {
 }
 
 .history-list li {
-  color: rgba(255,255,255,0.9);
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255, 255, 255, 0.9);
+  padding: 10px 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 0.95rem;
   display: flex;
   justify-content: space-between;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.history-list li:hover {
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .history-list li:last-child {
@@ -284,42 +382,52 @@ h1 {
 .history-list .delete-btn {
   background: none;
   border: none;
-  color: rgba(255,255,255,0.4);
+  color: rgba(255, 255, 255, 0.4);
   cursor: pointer;
   font-size: 1rem;
   padding: 0 5px;
-  transition: color 0.2s;
+  transition: color 0.2s ease, transform 0.2s var(--spring);
   margin-right: 8px;
 }
 
 .history-list .delete-btn:hover {
   color: #ff6b6b;
+  transform: scale(1.2);
 }
 
 .history-list .empty {
   text-align: center;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255, 255, 255, 0.5);
   font-style: italic;
 }
 
+/* ── Parent Zone / Reset Button ── */
+.parent-zone {
+  text-align: center;
+  margin-top: 10px;
+}
+
 .reset-btn {
-  background: rgba(255,255,255,0.15);
-  border: 1px solid rgba(255,255,255,0.3);
-  color: rgba(255,255,255,0.7);
-  border-radius: 10px;
-  padding: 8px 20px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: var(--btn-radius);
+  padding: 8px 24px;
   font-size: 0.85rem;
+  font-family: inherit;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s var(--spring);
   margin-top: 10px;
 }
 
 .reset-btn:hover {
-  background: rgba(255,80,80,0.3);
-  border-color: rgba(255,80,80,0.5);
+  background: rgba(255, 80, 80, 0.3);
+  border-color: rgba(255, 80, 80, 0.5);
   color: #fff;
+  transform: scale(1.05);
 }
 
+/* ── Celebration / Confetti ── */
 .celebration {
   position: fixed;
   top: 0;
@@ -337,10 +445,11 @@ h1 {
 }
 
 @keyframes confettiFall {
-  0% { transform: translateY(-20px) rotate(0deg) scale(1); opacity: 1; }
+  0%   { transform: translateY(-20px) rotate(0deg) scale(1); opacity: 1; }
   100% { transform: translateY(100vh) rotate(720deg) scale(0.5); opacity: 0; }
 }
 
+/* ── Floating Star ── */
 .float-star {
   position: fixed;
   font-size: 2rem;
@@ -350,29 +459,26 @@ h1 {
 }
 
 @keyframes floatUp {
-  0% { transform: scale(0.5); opacity: 1; }
+  0%   { transform: scale(0.5); opacity: 1; }
   100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
 }
 
-.parent-zone {
-  text-align: center;
-  margin-top: 10px;
-}
-
+/* ── Modal Overlay — Backdrop Blur ── */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 2000;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
 }
 
 .modal-overlay.active {
@@ -380,25 +486,26 @@ h1 {
   visibility: visible;
 }
 
+/* ── Modal — Slide-Up + Scale ── */
 .modal {
   background: #fff;
-  border-radius: 25px;
+  border-radius: 28px;
   padding: 35px 40px;
   text-align: center;
-  box-shadow: 0 15px 50px rgba(0,0,0,0.3);
-  transform: scale(0.8);
-  transition: transform 0.3s;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  transform: translateY(40px) scale(0.9);
+  transition: transform 0.4s var(--spring);
   max-width: 350px;
   width: 90%;
 }
 
 .modal-overlay.active .modal {
-  transform: scale(1);
+  transform: translateY(0) scale(1);
 }
 
 .modal .modal-title {
   font-size: 1.4rem;
-  font-weight: bold;
+  font-weight: 700;
   color: #333;
   margin-bottom: 8px;
 }
@@ -423,32 +530,33 @@ h1 {
 
 .modal-btn {
   border: none;
-  border-radius: 15px;
+  border-radius: var(--btn-radius);
   padding: 15px 30px;
   font-size: 1.3rem;
-  font-weight: bold;
+  font-weight: 700;
+  font-family: inherit;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s var(--spring);
   color: #fff;
   min-width: 110px;
 }
 
 .modal-btn:hover {
-  transform: scale(1.05);
+  transform: scale(1.08);
 }
 
 .modal-btn:active {
-  transform: scale(0.95);
+  transform: scale(0.93);
 }
 
 .modal-btn.mama {
   background: linear-gradient(145deg, #E91E63, #C2185B);
-  box-shadow: 0 4px 15px rgba(233,30,99,0.4);
+  box-shadow: 0 4px 15px rgba(233, 30, 99, 0.4);
 }
 
 .modal-btn.abba {
   background: linear-gradient(145deg, #2196F3, #1976D2);
-  box-shadow: 0 4px 15px rgba(33,150,243,0.4);
+  box-shadow: 0 4px 15px rgba(33, 150, 243, 0.4);
 }
 
 .modal-cancel {
@@ -456,23 +564,27 @@ h1 {
   border: none;
   color: #aaa;
   font-size: 0.9rem;
+  font-family: inherit;
   cursor: pointer;
   margin-top: 15px;
   padding: 5px;
+  transition: color 0.2s ease;
 }
 
 .modal-cancel:hover {
   color: #666;
 }
 
-/* Onboarding overlay */
+/* ── Onboarding Overlay — Animated BG ── */
 .onboarding {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #b24592 50%, #f64f59 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 12s ease infinite;
   z-index: 3000;
   display: flex;
   align-items: center;
@@ -480,18 +592,26 @@ h1 {
   padding: 20px;
 }
 
+/* ── Onboarding Step Card — Slide-Up-Fade-In ── */
 .onboarding-step {
-  background: rgba(255,255,255,0.95);
-  border-radius: 25px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 28px;
   padding: 40px;
   text-align: center;
-  box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
   max-width: 500px;
   width: 100%;
+  animation: slideUpFadeIn 0.5s var(--ease-out) both;
+}
+
+@keyframes slideUpFadeIn {
+  0%   { opacity: 0; transform: translateY(30px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 .onboarding-step h2 {
   font-size: 1.8rem;
+  font-weight: 700;
   color: #333;
   margin-bottom: 10px;
 }
@@ -502,21 +622,24 @@ h1 {
   font-size: 1rem;
 }
 
+/* ── Onboarding Inputs — Purple Focus Ring ── */
 .onboarding-step input[type="text"],
 .onboarding-step input[type="password"] {
   width: 100%;
   padding: 14px 18px;
   border: 2px solid #ddd;
-  border-radius: 12px;
+  border-radius: 14px;
   font-size: 1.2rem;
+  font-family: inherit;
   text-align: center;
   margin-bottom: 15px;
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .onboarding-step input:focus {
-  border-color: #667eea;
+  border-color: #764ba2;
+  box-shadow: 0 0 0 4px rgba(118, 75, 162, 0.2);
 }
 
 .onboarding-step .error-msg {
@@ -526,28 +649,31 @@ h1 {
   min-height: 1.2em;
 }
 
+/* ── Onboarding Button ── */
 .onboarding-btn {
   background: linear-gradient(145deg, #667eea, #764ba2);
   border: none;
-  border-radius: 15px;
+  border-radius: var(--btn-radius);
   padding: 14px 40px;
   font-size: 1.2rem;
-  font-weight: bold;
+  font-weight: 700;
+  font-family: inherit;
   color: #fff;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+  transition: all 0.3s var(--spring);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
 .onboarding-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(102,126,234,0.6);
+  transform: scale(1.08);
+  box-shadow: 0 6px 22px rgba(102, 126, 234, 0.6);
 }
 
 .onboarding-btn:active {
-  transform: scale(0.95);
+  transform: scale(0.93);
 }
 
+/* ── Prize Grid ── */
 .prize-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -558,22 +684,22 @@ h1 {
 .prize-option {
   background: #f5f5f5;
   border: 3px solid transparent;
-  border-radius: 15px;
+  border-radius: 18px;
   padding: 15px 8px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s var(--spring);
 }
 
 .prize-option:hover {
-  transform: scale(1.05);
+  transform: scale(1.06);
   background: #eee;
 }
 
 .prize-option.selected {
-  border-color: #667eea;
-  background: #eef0ff;
-  box-shadow: 0 2px 10px rgba(102,126,234,0.3);
+  border-color: #764ba2;
+  background: #f3eeff;
+  box-shadow: 0 2px 12px rgba(118, 75, 162, 0.3);
 }
 
 .prize-option .prize-emoji {
@@ -585,7 +711,7 @@ h1 {
 .prize-option .prize-name {
   font-size: 0.85rem;
   color: #333;
-  font-weight: bold;
+  font-weight: 700;
 }
 
 .prize-option .prize-cost {
@@ -593,31 +719,39 @@ h1 {
   color: #888;
 }
 
-/* Password prompt modal */
+/* ── Password Modal ── */
 .password-modal {
   background: #fff;
-  border-radius: 25px;
+  border-radius: 28px;
   padding: 35px 40px;
   text-align: center;
-  box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   max-width: 350px;
   width: 90%;
+  transform: translateY(40px) scale(0.9);
+  transition: transform 0.4s var(--spring);
+}
+
+.modal-overlay.active .password-modal {
+  transform: translateY(0) scale(1);
 }
 
 .password-modal input[type="password"] {
   width: 100%;
   padding: 12px 16px;
   border: 2px solid #ddd;
-  border-radius: 12px;
+  border-radius: 14px;
   font-size: 1.1rem;
+  font-family: inherit;
   text-align: center;
   margin: 15px 0;
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .password-modal input[type="password"]:focus {
-  border-color: #667eea;
+  border-color: #764ba2;
+  box-shadow: 0 0 0 4px rgba(118, 75, 162, 0.2);
 }
 
 .password-modal .error-msg {
@@ -627,11 +761,15 @@ h1 {
   margin-bottom: 5px;
 }
 
+/* ── Responsive ── */
 @media (max-width: 600px) {
   h1 { font-size: 1.8rem; }
   .star-count .number { font-size: 2.5rem; }
+  .star-count { padding: 14px 28px; }
   .rewards { grid-template-columns: 1fr; }
-  .add-star-btn { width: 75px; height: 75px; font-size: 2.2rem; }
+  .add-star-btn { width: 80px; height: 80px; font-size: 2.4rem; }
   .prize-grid { grid-template-columns: repeat(2, 1fr); }
   .onboarding-step { padding: 25px; }
+  .modal { padding: 28px 24px; }
+  .password-modal { padding: 28px 24px; }
 }

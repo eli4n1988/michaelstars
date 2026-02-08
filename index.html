@@ -472,17 +472,229 @@
     color: #666;
   }
 
+  /* Onboarding overlay */
+  .onboarding {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .onboarding-step {
+    background: rgba(255,255,255,0.95);
+    border-radius: 25px;
+    padding: 40px;
+    text-align: center;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+    max-width: 500px;
+    width: 100%;
+    display: none;
+  }
+
+  .onboarding-step.active {
+    display: block;
+  }
+
+  .onboarding-step h2 {
+    font-size: 1.8rem;
+    color: #333;
+    margin-bottom: 10px;
+  }
+
+  .onboarding-step p {
+    color: #888;
+    margin-bottom: 25px;
+    font-size: 1rem;
+  }
+
+  .onboarding-step input[type="text"],
+  .onboarding-step input[type="password"] {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    font-size: 1.2rem;
+    text-align: center;
+    margin-bottom: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .onboarding-step input:focus {
+    border-color: #667eea;
+  }
+
+  .onboarding-step .error-msg {
+    color: #E91E63;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    min-height: 1.2em;
+  }
+
+  .onboarding-btn {
+    background: linear-gradient(145deg, #667eea, #764ba2);
+    border: none;
+    border-radius: 15px;
+    padding: 14px 40px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+  }
+
+  .onboarding-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(102,126,234,0.6);
+  }
+
+  .onboarding-btn:active {
+    transform: scale(0.95);
+  }
+
+  .prize-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .prize-option {
+    background: #f5f5f5;
+    border: 3px solid transparent;
+    border-radius: 15px;
+    padding: 15px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .prize-option:hover {
+    transform: scale(1.05);
+    background: #eee;
+  }
+
+  .prize-option.selected {
+    border-color: #667eea;
+    background: #eef0ff;
+    box-shadow: 0 2px 10px rgba(102,126,234,0.3);
+  }
+
+  .prize-option .prize-emoji {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  .prize-option .prize-name {
+    font-size: 0.85rem;
+    color: #333;
+    font-weight: bold;
+  }
+
+  .prize-option .prize-cost {
+    font-size: 0.75rem;
+    color: #888;
+  }
+
+  /* Password prompt modal */
+  .password-modal {
+    background: #fff;
+    border-radius: 25px;
+    padding: 35px 40px;
+    text-align: center;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+    max-width: 350px;
+    width: 90%;
+  }
+
+  .password-modal input[type="password"] {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    text-align: center;
+    margin: 15px 0;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .password-modal input[type="password"]:focus {
+    border-color: #667eea;
+  }
+
+  .password-modal .error-msg {
+    color: #E91E63;
+    font-size: 0.9rem;
+    min-height: 1.2em;
+    margin-bottom: 5px;
+  }
+
   @media (max-width: 600px) {
     h1 { font-size: 1.8rem; }
     .star-count .number { font-size: 2.5rem; }
     .rewards { grid-template-columns: 1fr; }
     .add-star-btn { width: 75px; height: 75px; font-size: 2.2rem; }
+    .prize-grid { grid-template-columns: repeat(2, 1fr); }
+    .onboarding-step { padding: 25px; }
   }
 </style>
 </head>
 <body>
 
-<h1>הכוכבים של מיכאל!</h1>
+<!-- Onboarding overlay -->
+<div class="onboarding" id="onboarding" style="display:none;">
+  <!-- Step 1: Child's name -->
+  <div class="onboarding-step active" id="onboard-step1">
+    <h2>&#11088; ברוכים הבאים!</h2>
+    <p>מה השם של הילד/ה?</p>
+    <input type="text" id="onboardName" placeholder="שם הילד/ה" autofocus>
+    <div class="error-msg" id="nameError"></div>
+    <button class="onboarding-btn" onclick="onboardNext(1)">הבא &#8592;</button>
+  </div>
+
+  <!-- Step 2: Parent password -->
+  <div class="onboarding-step" id="onboard-step2">
+    <h2>&#128274; סיסמת הורה</h2>
+    <p>בחרו סיסמה להגנה על פעולות הורה</p>
+    <input type="password" id="onboardPass" placeholder="סיסמה">
+    <input type="password" id="onboardPassConfirm" placeholder="אימות סיסמה">
+    <div class="error-msg" id="passError"></div>
+    <button class="onboarding-btn" onclick="onboardNext(2)">הבא &#8592;</button>
+  </div>
+
+  <!-- Step 3: Pick prizes -->
+  <div class="onboarding-step" id="onboard-step3">
+    <h2>&#127873; בחרו פרסים!</h2>
+    <p>לחצו לבחירת הפרסים (לפחות 1)</p>
+    <div class="prize-grid" id="prizeGrid"></div>
+    <div class="error-msg" id="prizeError"></div>
+    <button class="onboarding-btn" onclick="onboardFinish()">!סיים</button>
+  </div>
+</div>
+
+<!-- Password prompt modal -->
+<div class="modal-overlay" id="passwordOverlay">
+  <div class="password-modal">
+    <h3>&#128274; הזינו סיסמת הורה</h3>
+    <input type="password" id="passwordInput" placeholder="סיסמה">
+    <div class="error-msg" id="passwordError"></div>
+    <button class="onboarding-btn" onclick="submitPassword()" style="margin-left:10px;">אישור</button>
+    <button class="modal-cancel" onclick="closePasswordModal()">ביטול</button>
+  </div>
+</div>
+
+<div id="appContent">
+<h1 id="appTitle">הכוכבים של מיכאל!</h1>
 
 <div class="star-count">
   <div class="label">הכוכבים שלי</div>
@@ -502,39 +714,7 @@
 
 <div class="star-display" id="starDisplay"></div>
 
-<div class="rewards">
-  <div class="reward-card" id="card-pizza">
-    <span class="emoji">&#127829;</span>
-    <div class="name">פיצה!</div>
-    <div class="cost"><span class="star-cost">&#11088; 3 כוכבים</span></div>
-    <div class="stars-needed" id="pips-pizza"></div>
-    <button class="claim-btn locked" id="btn-pizza" onclick="claimReward('pizza', 3)">חסרים 3 כוכבים</button>
-  </div>
-
-  <div class="reward-card" id="card-movie">
-    <span class="emoji">&#127916;&#127871;</span>
-    <div class="name">סרט ופופקורן!</div>
-    <div class="cost"><span class="star-cost">&#11088; 4 כוכבים</span></div>
-    <div class="stars-needed" id="pips-movie"></div>
-    <button class="claim-btn locked" id="btn-movie" onclick="claimReward('movie', 4)">חסרים 4 כוכבים</button>
-  </div>
-
-  <div class="reward-card" id="card-pool">
-    <span class="emoji">&#127946;&#127848;</span>
-    <div class="name">בריכה וגלידה!</div>
-    <div class="cost"><span class="star-cost">&#11088; 5 כוכבים</span></div>
-    <div class="stars-needed" id="pips-pool"></div>
-    <button class="claim-btn locked" id="btn-pool" onclick="claimReward('pool', 5)">חסרים 5 כוכבים</button>
-  </div>
-
-  <div class="reward-card" id="card-puzzle">
-    <span class="emoji">&#129513;</span>
-    <div class="name">פאזל!</div>
-    <div class="cost"><span class="star-cost">&#11088; 5 כוכבים</span></div>
-    <div class="stars-needed" id="pips-puzzle"></div>
-    <button class="claim-btn locked" id="btn-puzzle" onclick="claimReward('puzzle', 5)">חסרים 5 כוכבים</button>
-  </div>
-</div>
+<div class="rewards" id="rewardsContainer"></div>
 
 <div class="history">
   <h2>היסטוריית פרסים</h2>
@@ -546,6 +726,8 @@
 <div class="parent-zone">
   <button class="reset-btn" onclick="resetStars()">הורה: אפס כוכבים</button>
 </div>
+
+</div><!-- end appContent -->
 
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
@@ -564,14 +746,37 @@
 
 <script>
   const STORAGE_KEY = 'starRewardsApp';
-  const rewards = {
-    pizza:  { name: 'פיצה', emoji: '&#127829;', cost: 3 },
-    movie:  { name: 'סרט ופופקורן', emoji: '&#127916;&#127871;', cost: 4 },
-    pool:   { name: 'בריכה וגלידה', emoji: '&#127946;&#127848;', cost: 5 },
-    puzzle: { name: 'פאזל', emoji: '&#129513;', cost: 5 },
+  const CONFIG_KEY = 'starRewardsConfig';
+
+  // Full catalog of all possible rewards
+  const ALL_REWARDS = {
+    candy:   { name: 'ממתקים', emoji: '\uD83C\uDF6C', cost: 2 },
+    stickers:{ name: 'מדבקות', emoji: '\uD83C\uDF1F', cost: 2 },
+    pizza:   { name: 'פיצה', emoji: '\uD83C\uDF55', cost: 3 },
+    screen:  { name: 'זמן מסך', emoji: '\uD83D\uDCF1', cost: 3 },
+    movie:   { name: 'סרט ופופקורן', emoji: '\uD83C\uDFA6\uD83C\uDF7F', cost: 4 },
+    park:    { name: 'פארק שעשועים', emoji: '\uD83C\uDFA1', cost: 4 },
+    pool:    { name: 'בריכה וגלידה', emoji: '\uD83C\uDFCA\uD83C\uDF68', cost: 5 },
+    puzzle:  { name: 'פאזל', emoji: '\uD83E\uDDE9', cost: 5 },
+    toy:     { name: 'צעצוע חדש', emoji: '\uD83E\uDDF8', cost: 5 },
   };
 
+  // Active rewards (filtered by config)
+  let rewards = {};
+  let config = loadConfig();
   let state = loadState();
+
+  function loadConfig() {
+    try {
+      const saved = localStorage.getItem(CONFIG_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch(e) {}
+    return null;
+  }
+
+  function saveConfig() {
+    localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+  }
 
   function loadState() {
     try {
@@ -585,12 +790,130 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }
 
+  function applyConfig() {
+    // Build active rewards from config
+    rewards = {};
+    if (config && config.selectedRewards) {
+      for (const key of config.selectedRewards) {
+        if (ALL_REWARDS[key]) rewards[key] = ALL_REWARDS[key];
+      }
+    }
+    // Update title
+    const name = config ? config.childName : '';
+    document.getElementById('appTitle').textContent = `הכוכבים של ${name}!`;
+    document.title = `הכוכבים של ${name}!`;
+  }
+
+  // ─── Onboarding ───
+  let onboardSelectedPrizes = new Set();
+
+  function initOnboarding() {
+    document.getElementById('onboarding').style.display = 'flex';
+    document.getElementById('appContent').style.display = 'none';
+    // Populate prize grid
+    const grid = document.getElementById('prizeGrid');
+    grid.innerHTML = '';
+    for (const [key, r] of Object.entries(ALL_REWARDS)) {
+      const div = document.createElement('div');
+      div.className = 'prize-option';
+      div.dataset.key = key;
+      div.innerHTML = `<span class="prize-emoji">${r.emoji}</span><span class="prize-name">${r.name}</span><span class="prize-cost">${r.cost} \u2B50</span>`;
+      div.onclick = () => togglePrize(div, key);
+      grid.appendChild(div);
+    }
+  }
+
+  function togglePrize(el, key) {
+    if (onboardSelectedPrizes.has(key)) {
+      onboardSelectedPrizes.delete(key);
+      el.classList.remove('selected');
+    } else {
+      onboardSelectedPrizes.add(key);
+      el.classList.add('selected');
+    }
+  }
+
+  function onboardNext(step) {
+    if (step === 1) {
+      const name = document.getElementById('onboardName').value.trim();
+      if (!name) {
+        document.getElementById('nameError').textContent = 'נא להזין שם';
+        return;
+      }
+      document.getElementById('nameError').textContent = '';
+      document.getElementById('onboard-step1').classList.remove('active');
+      document.getElementById('onboard-step2').classList.add('active');
+    } else if (step === 2) {
+      const pass = document.getElementById('onboardPass').value;
+      const confirm = document.getElementById('onboardPassConfirm').value;
+      if (!pass) {
+        document.getElementById('passError').textContent = 'נא להזין סיסמה';
+        return;
+      }
+      if (pass !== confirm) {
+        document.getElementById('passError').textContent = 'הסיסמאות לא תואמות';
+        return;
+      }
+      document.getElementById('passError').textContent = '';
+      document.getElementById('onboard-step2').classList.remove('active');
+      document.getElementById('onboard-step3').classList.add('active');
+    }
+  }
+
+  function onboardFinish() {
+    if (onboardSelectedPrizes.size === 0) {
+      document.getElementById('prizeError').textContent = 'נא לבחור לפחות פרס אחד';
+      return;
+    }
+    config = {
+      childName: document.getElementById('onboardName').value.trim(),
+      password: document.getElementById('onboardPass').value,
+      selectedRewards: Array.from(onboardSelectedPrizes),
+    };
+    saveConfig();
+    document.getElementById('onboarding').style.display = 'none';
+    document.getElementById('appContent').style.display = '';
+    applyConfig();
+    render();
+  }
+
+  // ─── Password protection ───
+  let pendingPasswordAction = null;
+
+  function requirePassword(actionFn) {
+    pendingPasswordAction = actionFn;
+    document.getElementById('passwordInput').value = '';
+    document.getElementById('passwordError').textContent = '';
+    document.getElementById('passwordOverlay').classList.add('active');
+    document.getElementById('passwordInput').focus();
+  }
+
+  function submitPassword() {
+    const entered = document.getElementById('passwordInput').value;
+    if (!config || entered !== config.password) {
+      document.getElementById('passwordError').textContent = 'סיסמה שגויה';
+      return;
+    }
+    document.getElementById('passwordOverlay').classList.remove('active');
+    if (pendingPasswordAction) {
+      pendingPasswordAction();
+      pendingPasswordAction = null;
+    }
+  }
+
+  function closePasswordModal() {
+    document.getElementById('passwordOverlay').classList.remove('active');
+    pendingPasswordAction = null;
+  }
+
+  // ─── Star actions ───
   let pendingAction = null;
 
   function addStar() {
     pendingAction = 'add';
+    const name = config ? config.childName : '';
     document.getElementById('modalTitle').textContent = 'מי מאשר את הכוכב?';
-    document.getElementById('modalSubtitle').textContent = 'מיכאל היה ילד טוב היום!';
+    document.getElementById('modalSubtitle').textContent = `${name} היה ילד טוב היום!`;
     document.getElementById('modalStar').innerHTML = '&#11088;';
     document.getElementById('modalOverlay').classList.add('active');
   }
@@ -598,8 +921,9 @@
   function removeStar() {
     if (state.stars <= 0) return;
     pendingAction = 'remove';
+    const name = config ? config.childName : '';
     document.getElementById('modalTitle').textContent = 'מי מאשר הסרת כוכב?';
-    document.getElementById('modalSubtitle').textContent = 'מיכאל לא התנהג יפה...';
+    document.getElementById('modalSubtitle').textContent = `${name} לא התנהג יפה...`;
     document.getElementById('modalStar').innerHTML = '&#10060;';
     document.getElementById('modalOverlay').classList.add('active');
   }
@@ -638,10 +962,23 @@
   }
 
   function resetStars() {
-    if (!confirm('לאפס את כל הכוכבים ל-0? (ההיסטוריה תישמר)')) return;
-    state.stars = 0;
-    saveState();
-    render();
+    requirePassword(() => {
+      if (!confirm('לאפס את כל הכוכבים ל-0? (ההיסטוריה תישמר)')) return;
+      state.stars = 0;
+      saveState();
+      render();
+    });
+  }
+
+  function deleteHistory(index) {
+    requirePassword(() => {
+      const entry = state.history[index];
+      const rewardKey = Object.keys(ALL_REWARDS).find(k => ALL_REWARDS[k].name === entry.name);
+      state.stars += rewardKey ? ALL_REWARDS[rewardKey].cost : 0;
+      state.history.splice(index, 1);
+      saveState();
+      render();
+    });
   }
 
   function render() {
@@ -666,29 +1003,39 @@
       display.appendChild(more);
     }
 
-    // Reward cards
+    // Reward cards — generated dynamically
+    const container = document.getElementById('rewardsContainer');
+    container.innerHTML = '';
     for (const [key, r] of Object.entries(rewards)) {
-      const btn = document.getElementById(`btn-${key}`);
-      const pips = document.getElementById(`pips-${key}`);
+      const card = document.createElement('div');
+      card.className = 'reward-card';
 
       // Pips
-      pips.innerHTML = '';
+      let pipsHtml = '';
       for (let i = 0; i < r.cost; i++) {
-        const pip = document.createElement('span');
-        pip.className = 'pip ' + (i < state.stars ? 'filled' : 'empty');
-        pip.textContent = '\u2B50';
-        pips.appendChild(pip);
+        const cls = i < state.stars ? 'filled' : 'empty';
+        pipsHtml += `<span class="pip ${cls}">\u2B50</span>`;
       }
 
       // Button
+      let btnClass, btnText;
       if (state.stars >= r.cost) {
-        btn.className = 'claim-btn available';
-        btn.textContent = 'קבל את הפרס!';
+        btnClass = 'claim-btn available';
+        btnText = 'קבל את הפרס!';
       } else {
-        btn.className = 'claim-btn locked';
+        btnClass = 'claim-btn locked';
         const needed = r.cost - state.stars;
-        btn.textContent = `חסרים ${needed} כוכבים`;
+        btnText = `חסרים ${needed} כוכבים`;
       }
+
+      card.innerHTML = `
+        <span class="emoji">${r.emoji}</span>
+        <div class="name">${r.name}!</div>
+        <div class="cost"><span class="star-cost">\u2B50 ${r.cost} כוכבים</span></div>
+        <div class="stars-needed">${pipsHtml}</div>
+        <button class="${btnClass}" onclick="claimReward('${key}', ${r.cost})">${btnText}</button>
+      `;
+      container.appendChild(card);
     }
 
     // History
@@ -700,14 +1047,6 @@
         `<li><span>${h.emoji} ${h.name}</span><span>${h.date}<button class="delete-btn" onclick="deleteHistory(${i})" title="מחק">&#10005;</button></span></li>`
       ).join('');
     }
-  }
-
-  function deleteHistory(index) {
-    const entry = state.history[index];
-    state.stars += rewards[Object.keys(rewards).find(k => rewards[k].name === entry.name)]?.cost || 0;
-    state.history.splice(index, 1);
-    saveState();
-    render();
   }
 
   function spawnFloatStar() {
@@ -766,7 +1105,13 @@
     } catch(e) {}
   }
 
-  render();
+  // ─── Init ───
+  if (config) {
+    applyConfig();
+    render();
+  } else {
+    initOnboarding();
+  }
 </script>
 </body>
 </html>

@@ -1,12 +1,1119 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="he" dir="rtl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>הכוכבים שלי!</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>הכוכבים של מיכאל!</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    overflow-x: hidden;
+  }
+
+  h1 {
+    color: #fff;
+    font-size: 2.5rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    margin-bottom: 10px;
+    text-align: center;
+  }
+
+  .star-count {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 15px 40px;
+    margin-bottom: 25px;
+    text-align: center;
+    border: 2px solid rgba(255,255,255,0.3);
+  }
+
+  .star-count .label {
+    color: rgba(255,255,255,0.9);
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+  }
+
+  .star-count .number {
+    color: #FFD700;
+    font-size: 5rem;
+    font-weight: bold;
+    text-shadow: 0 0 20px rgba(255,215,0,0.5);
+  }
+
+  .star-count .star-icon {
+    font-size: 3.5rem;
+    vertical-align: middle;
+  }
+
+  .add-star-btn {
+    background: linear-gradient(145deg, #FFD700, #FFA500);
+    border: none;
+    border-radius: 50%;
+    width: 110px;
+    height: 110px;
+    font-size: 3.5rem;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(255,165,0,0.5);
+    transition: all 0.2s;
+    margin-bottom: 30px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .add-star-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 30px rgba(255,165,0,0.7);
+  }
+
+  .add-star-btn:active {
+    transform: scale(0.95);
+  }
+
+  .remove-star-btn {
+    background: linear-gradient(145deg, #ff6b6b, #ee5a24);
+    border: none;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    font-size: 1.6rem;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(238,90,36,0.4);
+    transition: all 0.2s;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .remove-star-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(238,90,36,0.6);
+  }
+
+  .remove-star-btn:active {
+    transform: scale(0.95);
+  }
+
+  .remove-star-btn .tooltip {
+    position: absolute;
+    bottom: -30px;
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.8);
+    white-space: nowrap;
+  }
+
+  .add-star-btn .tooltip {
+    position: absolute;
+    bottom: -30px;
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.8);
+    white-space: nowrap;
+  }
+
+  .star-display {
+    display: grid;
+    grid-template-columns: repeat(7, auto);
+    justify-content: center;
+    gap: 8px;
+    max-width: 500px;
+    margin-bottom: 30px;
+    min-height: 40px;
+  }
+
+  .star-display .star {
+    font-size: 3rem;
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: default;
+    transition: transform 0.2s;
+  }
+
+  .star-display .star:hover {
+    transform: scale(1.3) rotate(20deg);
+  }
+
+  @keyframes popIn {
+    0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+
+  .rewards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    width: 100%;
+    max-width: 850px;
+    margin-bottom: 30px;
+  }
+
+  .reward-card {
+    background: rgba(255,255,255,0.95);
+    border-radius: 20px;
+    padding: 25px;
+    text-align: center;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .reward-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+  }
+
+
+
+  .reward-card .emoji {
+    font-size: 4rem;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .reward-card .name {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 8px;
+  }
+
+  .reward-card .cost {
+    color: #888;
+    font-size: 1rem;
+    margin-bottom: 15px;
+  }
+
+  .reward-card .cost .star-cost {
+    color: #FFD700;
+  }
+
+  .reward-card .stars-needed {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    margin-bottom: 15px;
+  }
+
+  .reward-card .stars-needed .pip {
+    width: 22px;
+    height: 22px;
+    font-size: 1.2rem;
+    line-height: 22px;
+  }
+
+  .reward-card .pip.filled {
+    filter: none;
+  }
+
+  .reward-card .pip.empty {
+    filter: grayscale(100%);
+    opacity: 0.3;
+  }
+
+  .claim-btn {
+    border: none;
+    border-radius: 30px;
+    padding: 12px 30px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #fff;
+  }
+
+  .claim-btn.available {
+    background: linear-gradient(145deg, #4CAF50, #45a049);
+    box-shadow: 0 4px 15px rgba(76,175,80,0.4);
+    animation: pulse 2s infinite;
+  }
+
+  .claim-btn.available:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(76,175,80,0.6);
+  }
+
+  .claim-btn.locked {
+    background: #ccc;
+    cursor: not-allowed;
+    color: #999;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 4px 15px rgba(76,175,80,0.4); }
+    50% { box-shadow: 0 4px 25px rgba(76,175,80,0.7); }
+  }
+
+  .history {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 20px 30px;
+    width: 100%;
+    max-width: 850px;
+    border: 2px solid rgba(255,255,255,0.2);
+    margin-bottom: 20px;
+  }
+
+  .history h2 {
+    color: #fff;
+    font-size: 1.3rem;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+
+  .history-list {
+    list-style: none;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .history-list li {
+    color: rgba(255,255,255,0.9);
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    font-size: 0.95rem;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .history-list li:last-child {
+    border-bottom: none;
+  }
+
+  .history-list .delete-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.4);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0 5px;
+    transition: color 0.2s;
+    margin-right: 8px;
+  }
+
+  .history-list .delete-btn:hover {
+    color: #ff6b6b;
+  }
+
+  .history-list .empty {
+    text-align: center;
+    color: rgba(255,255,255,0.5);
+    font-style: italic;
+  }
+
+  .reset-btn {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: rgba(255,255,255,0.7);
+    border-radius: 10px;
+    padding: 8px 20px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 10px;
+  }
+
+  .reset-btn:hover {
+    background: rgba(255,80,80,0.3);
+    border-color: rgba(255,80,80,0.5);
+    color: #fff;
+  }
+
+  .celebration {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  .confetti {
+    position: absolute;
+    font-size: 2rem;
+    animation: confettiFall 3s forwards;
+  }
+
+  @keyframes confettiFall {
+    0% { transform: translateY(-20px) rotate(0deg) scale(1); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg) scale(0.5); opacity: 0; }
+  }
+
+  .float-star {
+    position: fixed;
+    font-size: 2rem;
+    pointer-events: none;
+    z-index: 999;
+    animation: floatUp 1s forwards;
+  }
+
+  @keyframes floatUp {
+    0% { transform: scale(0.5); opacity: 1; }
+    100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
+  }
+
+  .parent-zone {
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+  }
+
+  .modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .modal {
+    background: #fff;
+    border-radius: 25px;
+    padding: 35px 40px;
+    text-align: center;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+    transform: scale(0.8);
+    transition: transform 0.3s;
+    max-width: 350px;
+    width: 90%;
+  }
+
+  .modal-overlay.active .modal {
+    transform: scale(1);
+  }
+
+  .modal .modal-title {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 8px;
+  }
+
+  .modal .modal-subtitle {
+    font-size: 1rem;
+    color: #888;
+    margin-bottom: 25px;
+  }
+
+  .modal .modal-star {
+    font-size: 4rem;
+    display: block;
+    margin-bottom: 15px;
+  }
+
+  .modal-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+  }
+
+  .modal-btn {
+    border: none;
+    border-radius: 15px;
+    padding: 15px 30px;
+    font-size: 1.3rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #fff;
+    min-width: 110px;
+  }
+
+  .modal-btn:hover {
+    transform: scale(1.05);
+  }
+
+  .modal-btn:active {
+    transform: scale(0.95);
+  }
+
+  .modal-btn.mama {
+    background: linear-gradient(145deg, #E91E63, #C2185B);
+    box-shadow: 0 4px 15px rgba(233,30,99,0.4);
+  }
+
+  .modal-btn.abba {
+    background: linear-gradient(145deg, #2196F3, #1976D2);
+    box-shadow: 0 4px 15px rgba(33,150,243,0.4);
+  }
+
+  .modal-cancel {
+    background: none;
+    border: none;
+    color: #aaa;
+    font-size: 0.9rem;
+    cursor: pointer;
+    margin-top: 15px;
+    padding: 5px;
+  }
+
+  .modal-cancel:hover {
+    color: #666;
+  }
+
+  /* Onboarding overlay */
+  .onboarding {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .onboarding-step {
+    background: rgba(255,255,255,0.95);
+    border-radius: 25px;
+    padding: 40px;
+    text-align: center;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+    max-width: 500px;
+    width: 100%;
+    display: none;
+  }
+
+  .onboarding-step.active {
+    display: block;
+  }
+
+  .onboarding-step h2 {
+    font-size: 1.8rem;
+    color: #333;
+    margin-bottom: 10px;
+  }
+
+  .onboarding-step p {
+    color: #888;
+    margin-bottom: 25px;
+    font-size: 1rem;
+  }
+
+  .onboarding-step input[type="text"],
+  .onboarding-step input[type="password"] {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    font-size: 1.2rem;
+    text-align: center;
+    margin-bottom: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .onboarding-step input:focus {
+    border-color: #667eea;
+  }
+
+  .onboarding-step .error-msg {
+    color: #E91E63;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    min-height: 1.2em;
+  }
+
+  .onboarding-btn {
+    background: linear-gradient(145deg, #667eea, #764ba2);
+    border: none;
+    border-radius: 15px;
+    padding: 14px 40px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+  }
+
+  .onboarding-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(102,126,234,0.6);
+  }
+
+  .onboarding-btn:active {
+    transform: scale(0.95);
+  }
+
+  .prize-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .prize-option {
+    background: #f5f5f5;
+    border: 3px solid transparent;
+    border-radius: 15px;
+    padding: 15px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .prize-option:hover {
+    transform: scale(1.05);
+    background: #eee;
+  }
+
+  .prize-option.selected {
+    border-color: #667eea;
+    background: #eef0ff;
+    box-shadow: 0 2px 10px rgba(102,126,234,0.3);
+  }
+
+  .prize-option .prize-emoji {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  .prize-option .prize-name {
+    font-size: 0.85rem;
+    color: #333;
+    font-weight: bold;
+  }
+
+  .prize-option .prize-cost {
+    font-size: 0.75rem;
+    color: #888;
+  }
+
+  /* Password prompt modal */
+  .password-modal {
+    background: #fff;
+    border-radius: 25px;
+    padding: 35px 40px;
+    text-align: center;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+    max-width: 350px;
+    width: 90%;
+  }
+
+  .password-modal input[type="password"] {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    text-align: center;
+    margin: 15px 0;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .password-modal input[type="password"]:focus {
+    border-color: #667eea;
+  }
+
+  .password-modal .error-msg {
+    color: #E91E63;
+    font-size: 0.9rem;
+    min-height: 1.2em;
+    margin-bottom: 5px;
+  }
+
+  @media (max-width: 600px) {
+    h1 { font-size: 1.8rem; }
+    .star-count .number { font-size: 2.5rem; }
+    .rewards { grid-template-columns: 1fr; }
+    .add-star-btn { width: 75px; height: 75px; font-size: 2.2rem; }
+    .prize-grid { grid-template-columns: repeat(2, 1fr); }
+    .onboarding-step { padding: 25px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Onboarding overlay -->
+<div class="onboarding" id="onboarding" style="display:none;">
+  <!-- Step 1: Child's name -->
+  <div class="onboarding-step active" id="onboard-step1">
+    <h2>&#11088; ברוכים הבאים!</h2>
+    <p>מה השם של הילד/ה?</p>
+    <input type="text" id="onboardName" placeholder="שם הילד/ה" autofocus>
+    <div class="error-msg" id="nameError"></div>
+    <button class="onboarding-btn" onclick="onboardNext(1)">הבא &#8592;</button>
+  </div>
+
+  <!-- Step 2: Parent password -->
+  <div class="onboarding-step" id="onboard-step2">
+    <h2>&#128274; סיסמת הורה</h2>
+    <p>בחרו סיסמה להגנה על פעולות הורה</p>
+    <input type="password" id="onboardPass" placeholder="סיסמה">
+    <input type="password" id="onboardPassConfirm" placeholder="אימות סיסמה">
+    <div class="error-msg" id="passError"></div>
+    <button class="onboarding-btn" onclick="onboardNext(2)">הבא &#8592;</button>
+  </div>
+
+  <!-- Step 3: Pick prizes -->
+  <div class="onboarding-step" id="onboard-step3">
+    <h2>&#127873; בחרו פרסים!</h2>
+    <p>לחצו לבחירת הפרסים (לפחות 1)</p>
+    <div class="prize-grid" id="prizeGrid"></div>
+    <div class="error-msg" id="prizeError"></div>
+    <button class="onboarding-btn" onclick="onboardFinish()">!סיים</button>
+  </div>
+</div>
+
+<!-- Password prompt modal -->
+<div class="modal-overlay" id="passwordOverlay">
+  <div class="password-modal">
+    <h3>&#128274; הזינו סיסמת הורה</h3>
+    <input type="password" id="passwordInput" placeholder="סיסמה">
+    <div class="error-msg" id="passwordError"></div>
+    <button class="onboarding-btn" onclick="submitPassword()" style="margin-left:10px;">אישור</button>
+    <button class="modal-cancel" onclick="closePasswordModal()">ביטול</button>
+  </div>
+</div>
+
+<div id="appContent">
+<h1 id="appTitle">הכוכבים של מיכאל!</h1>
+
+<div class="star-count">
+  <div class="label">הכוכבים שלי</div>
+  <div><span class="number" id="starCount">0</span></div>
+</div>
+
+<div style="display: flex; gap: 20px; align-items: center; margin-bottom: 30px;">
+  <button class="add-star-btn" onclick="addStar()" title="הוסף כוכב על התנהגות טובה!" style="margin-bottom: 0;">
+    &#11088;
+    <span class="tooltip">הוסף כוכב</span>
+  </button>
+  <button class="remove-star-btn" onclick="removeStar()" title="הסר כוכב על התנהגות לא טובה">
+    &#10060;
+    <span class="tooltip">הסר כוכב</span>
+  </button>
+</div>
+
+<div class="star-display" id="starDisplay"></div>
+
+<div class="rewards" id="rewardsContainer"></div>
+
+<div class="history">
+  <h2>היסטוריית פרסים</h2>
+  <ul class="history-list" id="historyList">
+    <li class="empty">עדיין לא מימשת פרסים. המשך לאסוף כוכבים!</li>
+  </ul>
+</div>
+
+<div class="parent-zone">
+  <button class="reset-btn" onclick="resetStars()">הורה: אפס כוכבים</button>
+</div>
+
+</div><!-- end appContent -->
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <span class="modal-star" id="modalStar">&#11088;</span>
+    <div class="modal-title" id="modalTitle">מי מאשר את הכוכב?</div>
+    <div class="modal-subtitle" id="modalSubtitle">מיכאל היה ילד טוב היום!</div>
+    <div class="modal-buttons">
+      <button class="modal-btn mama" onclick="confirmStar('אמא')">&#128105; אמא</button>
+      <button class="modal-btn abba" onclick="confirmStar('אבא')">&#128104; אבא</button>
+    </div>
+    <button class="modal-cancel" onclick="closeModal()">ביטול</button>
+  </div>
+</div>
+
+<div class="celebration" id="celebration"></div>
+
+<script>
+  const STORAGE_KEY = 'starRewardsApp';
+  const CONFIG_KEY = 'starRewardsConfig';
+
+  // Full catalog of all possible rewards
+  const ALL_REWARDS = {
+    candy:   { name: 'ממתקים', emoji: '\uD83C\uDF6C', cost: 2 },
+    stickers:{ name: 'מדבקות', emoji: '\uD83C\uDF1F', cost: 2 },
+    pizza:   { name: 'פיצה', emoji: '\uD83C\uDF55', cost: 3 },
+    screen:  { name: 'זמן מסך', emoji: '\uD83D\uDCF1', cost: 3 },
+    movie:   { name: 'סרט ופופקורן', emoji: '\uD83C\uDFA6\uD83C\uDF7F', cost: 4 },
+    park:    { name: 'פארק שעשועים', emoji: '\uD83C\uDFA1', cost: 4 },
+    pool:    { name: 'בריכה וגלידה', emoji: '\uD83C\uDFCA\uD83C\uDF68', cost: 5 },
+    puzzle:  { name: 'פאזל', emoji: '\uD83E\uDDE9', cost: 5 },
+    toy:     { name: 'צעצוע חדש', emoji: '\uD83E\uDDF8', cost: 5 },
+  };
+
+  // Active rewards (filtered by config)
+  let rewards = {};
+  let config = loadConfig();
+  let state = loadState();
+
+  function loadConfig() {
+    try {
+      const saved = localStorage.getItem(CONFIG_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch(e) {}
+    return null;
+  }
+
+  function saveConfig() {
+    localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+  }
+
+  function loadState() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch(e) {}
+    return { stars: 0, history: [] };
+  }
+
+  function saveState() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  function applyConfig() {
+    // Build active rewards from config
+    rewards = {};
+    if (config && config.selectedRewards) {
+      for (const key of config.selectedRewards) {
+        if (ALL_REWARDS[key]) rewards[key] = ALL_REWARDS[key];
+      }
+    }
+    // Update title
+    const name = config ? config.childName : '';
+    document.getElementById('appTitle').textContent = `הכוכבים של ${name}!`;
+    document.title = `הכוכבים של ${name}!`;
+  }
+
+  // ─── Onboarding ───
+  let onboardSelectedPrizes = new Set();
+
+  function initOnboarding() {
+    document.getElementById('onboarding').style.display = 'flex';
+    document.getElementById('appContent').style.display = 'none';
+    // Populate prize grid
+    const grid = document.getElementById('prizeGrid');
+    grid.innerHTML = '';
+    for (const [key, r] of Object.entries(ALL_REWARDS)) {
+      const div = document.createElement('div');
+      div.className = 'prize-option';
+      div.dataset.key = key;
+      div.innerHTML = `<span class="prize-emoji">${r.emoji}</span><span class="prize-name">${r.name}</span><span class="prize-cost">${r.cost} \u2B50</span>`;
+      div.onclick = () => togglePrize(div, key);
+      grid.appendChild(div);
+    }
+  }
+
+  function togglePrize(el, key) {
+    if (onboardSelectedPrizes.has(key)) {
+      onboardSelectedPrizes.delete(key);
+      el.classList.remove('selected');
+    } else {
+      onboardSelectedPrizes.add(key);
+      el.classList.add('selected');
+    }
+  }
+
+  function onboardNext(step) {
+    if (step === 1) {
+      const name = document.getElementById('onboardName').value.trim();
+      if (!name) {
+        document.getElementById('nameError').textContent = 'נא להזין שם';
+        return;
+      }
+      document.getElementById('nameError').textContent = '';
+      document.getElementById('onboard-step1').classList.remove('active');
+      document.getElementById('onboard-step2').classList.add('active');
+    } else if (step === 2) {
+      const pass = document.getElementById('onboardPass').value;
+      const confirm = document.getElementById('onboardPassConfirm').value;
+      if (!pass) {
+        document.getElementById('passError').textContent = 'נא להזין סיסמה';
+        return;
+      }
+      if (pass !== confirm) {
+        document.getElementById('passError').textContent = 'הסיסמאות לא תואמות';
+        return;
+      }
+      document.getElementById('passError').textContent = '';
+      document.getElementById('onboard-step2').classList.remove('active');
+      document.getElementById('onboard-step3').classList.add('active');
+    }
+  }
+
+  function onboardFinish() {
+    if (onboardSelectedPrizes.size === 0) {
+      document.getElementById('prizeError').textContent = 'נא לבחור לפחות פרס אחד';
+      return;
+    }
+    config = {
+      childName: document.getElementById('onboardName').value.trim(),
+      password: document.getElementById('onboardPass').value,
+      selectedRewards: Array.from(onboardSelectedPrizes),
+    };
+    saveConfig();
+    document.getElementById('onboarding').style.display = 'none';
+    document.getElementById('appContent').style.display = '';
+    applyConfig();
+    render();
+  }
+
+  // ─── Password protection ───
+  let pendingPasswordAction = null;
+
+  function requirePassword(actionFn) {
+    pendingPasswordAction = actionFn;
+    document.getElementById('passwordInput').value = '';
+    document.getElementById('passwordError').textContent = '';
+    document.getElementById('passwordOverlay').classList.add('active');
+    document.getElementById('passwordInput').focus();
+  }
+
+  function submitPassword() {
+    const entered = document.getElementById('passwordInput').value;
+    if (!config || entered !== config.password) {
+      document.getElementById('passwordError').textContent = 'סיסמה שגויה';
+      return;
+    }
+    document.getElementById('passwordOverlay').classList.remove('active');
+    if (pendingPasswordAction) {
+      pendingPasswordAction();
+      pendingPasswordAction = null;
+    }
+  }
+
+  function closePasswordModal() {
+    document.getElementById('passwordOverlay').classList.remove('active');
+    pendingPasswordAction = null;
+  }
+
+  // ─── Star actions ───
+  let pendingAction = null;
+
+  function addStar() {
+    pendingAction = 'add';
+    const name = config ? config.childName : '';
+    document.getElementById('modalTitle').textContent = 'מי מאשר את הכוכב?';
+    document.getElementById('modalSubtitle').textContent = `${name} היה ילד טוב היום!`;
+    document.getElementById('modalStar').innerHTML = '&#11088;';
+    document.getElementById('modalOverlay').classList.add('active');
+  }
+
+  function removeStar() {
+    if (state.stars <= 0) return;
+    pendingAction = 'remove';
+    const name = config ? config.childName : '';
+    document.getElementById('modalTitle').textContent = 'מי מאשר הסרת כוכב?';
+    document.getElementById('modalSubtitle').textContent = `${name} לא התנהג יפה...`;
+    document.getElementById('modalStar').innerHTML = '&#10060;';
+    document.getElementById('modalOverlay').classList.add('active');
+  }
+
+  function confirmStar(approver) {
+    const action = pendingAction;
+    closeModal();
+    if (action === 'add') {
+      state.stars++;
+      spawnFloatStar();
+    } else if (action === 'remove') {
+      state.stars--;
+    }
+    pendingAction = null;
+    saveState();
+    render();
+    playSound('earn');
+  }
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('active');
+    pendingAction = null;
+  }
+
+  function claimReward(key, cost) {
+    if (state.stars < cost) return;
+    state.stars -= cost;
+    const r = rewards[key];
+    const date = new Date().toLocaleDateString('he-IL', { month: 'short', day: 'numeric' });
+    state.history.unshift({ name: r.name, emoji: r.emoji, date });
+    if (state.history.length > 20) state.history.pop();
+    saveState();
+    render();
+    celebrate();
+    playSound('claim');
+  }
+
+  function resetStars() {
+    requirePassword(() => {
+      if (!confirm('לאפס את כל הכוכבים ל-0? (ההיסטוריה תישמר)')) return;
+      state.stars = 0;
+      saveState();
+      render();
+    });
+  }
+
+  function deleteHistory(index) {
+    requirePassword(() => {
+      const entry = state.history[index];
+      const rewardKey = Object.keys(ALL_REWARDS).find(k => ALL_REWARDS[k].name === entry.name);
+      state.stars += rewardKey ? ALL_REWARDS[rewardKey].cost : 0;
+      state.history.splice(index, 1);
+      saveState();
+      render();
+    });
+  }
+
+  function render() {
+    document.getElementById('starCount').textContent = state.stars;
+
+    // Star display
+    const display = document.getElementById('starDisplay');
+    display.innerHTML = '';
+    for (let i = 0; i < state.stars && i < 30; i++) {
+      const span = document.createElement('span');
+      span.className = 'star';
+      span.textContent = '\u2B50';
+      span.style.animationDelay = (i * 0.05) + 's';
+      display.appendChild(span);
+    }
+    if (state.stars > 30) {
+      const more = document.createElement('span');
+      more.style.color = 'rgba(255,255,255,0.7)';
+      more.style.fontSize = '1rem';
+      more.style.alignSelf = 'center';
+      more.textContent = `+${state.stars - 30} נוספים`;
+      display.appendChild(more);
+    }
+
+    // Reward cards — generated dynamically
+    const container = document.getElementById('rewardsContainer');
+    container.innerHTML = '';
+    for (const [key, r] of Object.entries(rewards)) {
+      const card = document.createElement('div');
+      card.className = 'reward-card';
+
+      // Pips
+      let pipsHtml = '';
+      for (let i = 0; i < r.cost; i++) {
+        const cls = i < state.stars ? 'filled' : 'empty';
+        pipsHtml += `<span class="pip ${cls}">\u2B50</span>`;
+      }
+
+      // Button
+      let btnClass, btnText;
+      if (state.stars >= r.cost) {
+        btnClass = 'claim-btn available';
+        btnText = 'קבל את הפרס!';
+      } else {
+        btnClass = 'claim-btn locked';
+        const needed = r.cost - state.stars;
+        btnText = `חסרים ${needed} כוכבים`;
+      }
+
+      card.innerHTML = `
+        <span class="emoji">${r.emoji}</span>
+        <div class="name">${r.name}!</div>
+        <div class="cost"><span class="star-cost">\u2B50 ${r.cost} כוכבים</span></div>
+        <div class="stars-needed">${pipsHtml}</div>
+        <button class="${btnClass}" onclick="claimReward('${key}', ${r.cost})">${btnText}</button>
+      `;
+      container.appendChild(card);
+    }
+
+    // History
+    const list = document.getElementById('historyList');
+    if (state.history.length === 0) {
+      list.innerHTML = '<li class="empty">עדיין לא מימשת פרסים. המשך לאסוף כוכבים!</li>';
+    } else {
+      list.innerHTML = state.history.map((h, i) =>
+        `<li><span>${h.emoji} ${h.name}</span><span>${h.date}<button class="delete-btn" onclick="deleteHistory(${i})" title="מחק">&#10005;</button></span></li>`
+      ).join('');
+    }
+  }
+
+  function spawnFloatStar() {
+    const star = document.createElement('div');
+    star.className = 'float-star';
+    star.textContent = '\u2B50';
+    const btn = document.querySelector('.add-star-btn');
+    const rect = btn.getBoundingClientRect();
+    star.style.left = (rect.left + rect.width / 2 - 16) + 'px';
+    star.style.top = (rect.top) + 'px';
+    document.body.appendChild(star);
+    setTimeout(() => star.remove(), 1000);
+  }
+
+  function celebrate() {
+    const container = document.getElementById('celebration');
+    const emojis = ['\u2B50', '\u2728', '\uD83C\uDF89', '\uD83C\uDF8A', '\u2764\uFE0F', '\uD83C\uDF1F'];
+    for (let i = 0; i < 30; i++) {
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      c.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      c.style.left = Math.random() * 100 + '%';
+      c.style.animationDelay = Math.random() * 0.5 + 's';
+      c.style.animationDuration = (2 + Math.random() * 2) + 's';
+      container.appendChild(c);
+    }
+    setTimeout(() => { container.innerHTML = ''; }, 4000);
+  }
+
+  function playSound(type) {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      gain.gain.value = 0.15;
+
+      if (type === 'earn') {
+        osc.frequency.value = 600;
+        osc.type = 'sine';
+        osc.start();
+        osc.frequency.linearRampToValueAtTime(900, ctx.currentTime + 0.15);
+        gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.2);
+        osc.stop(ctx.currentTime + 0.2);
+      } else {
+        osc.frequency.value = 523;
+        osc.type = 'sine';
+        osc.start();
+        osc.frequency.setValueAtTime(659, ctx.currentTime + 0.12);
+        osc.frequency.setValueAtTime(784, ctx.currentTime + 0.24);
+        osc.frequency.setValueAtTime(1047, ctx.currentTime + 0.36);
+        gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.5);
+        osc.stop(ctx.currentTime + 0.5);
+      }
+    } catch(e) {}
+  }
+
+  // ─── Init ───
+  if (config) {
+    applyConfig();
+    render();
+  } else {
+    initOnboarding();
+  }
+</script>
+</body>
 </html>

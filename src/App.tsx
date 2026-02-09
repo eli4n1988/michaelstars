@@ -48,7 +48,11 @@ function App() {
   }
 
   // --- Star actions ---
-  const todayStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const getLocalDateStr = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+  const todayStr = getLocalDateStr();
   const starUsedToday = state.lastStarDate === todayStr;
 
   const handleAddStar = () => {
@@ -65,7 +69,7 @@ function App() {
   const handleConfirmStar = (_approver: string) => {
     const action = pendingAction;
     setPendingAction(null);
-    const today = new Date().toISOString().slice(0, 10);
+    const today = getLocalDateStr();
 
     if (action === 'add') {
       setState((prev) => ({ ...prev, stars: prev.stars + 1, lastStarDate: today }));
@@ -87,6 +91,7 @@ function App() {
     const date = new Date().toLocaleDateString('he-IL', { month: 'short', day: 'numeric' });
 
     setState((prev) => ({
+      ...prev,
       stars: prev.stars - cost,
       history: [{ name: r.name, emoji: r.emoji, date }, ...prev.history].slice(0, 20),
     }));
@@ -133,7 +138,7 @@ function App() {
         const refund = rewardKey ? ALL_REWARDS[rewardKey].cost : 0;
         const newHistory = [...prev.history];
         newHistory.splice(index, 1);
-        return { stars: prev.stars + refund, history: newHistory };
+        return { ...prev, stars: prev.stars + refund, history: newHistory };
       });
     });
   };

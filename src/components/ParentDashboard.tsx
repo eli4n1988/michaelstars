@@ -12,6 +12,7 @@ interface ParentDashboardProps {
   onRemoveStar: () => void;
   onResetStars: () => void;
   onUpdateConfig: (config: AppConfig) => void;
+  onFullReset: () => void;
 }
 
 type Tab = 'history' | 'prizes' | 'stars';
@@ -26,6 +27,7 @@ export function ParentDashboard({
   onRemoveStar,
   onResetStars,
   onUpdateConfig,
+  onFullReset,
 }: ParentDashboardProps) {
   const [activeTab, setActiveTab] = useState<Tab>('stars');
   const [editSelected, setEditSelected] = useState<string[]>([...config.selectedRewards]);
@@ -126,6 +128,18 @@ export function ParentDashboard({
               </div>
               <button className="pd-btn pd-btn-reset" onClick={handleResetStars}>
                 🔄 אפס כוכבים
+              </button>
+              <hr style={{ border: 'none', borderTop: '1px solid #eee', margin: '8px 0' }} />
+              <button
+                className="pd-btn pd-btn-reset"
+                style={{ color: '#e53935' }}
+                onClick={() => {
+                  if (confirm('לאפס הכל ולחזור להגדרה מחדש? כל הנתונים יימחקו!')) {
+                    onFullReset();
+                  }
+                }}
+              >
+                🗑️ איפוס מלא (חזרה להגדרה מחדש)
               </button>
             </div>
           )}

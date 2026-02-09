@@ -146,6 +146,12 @@ function App() {
     setState((prev) => ({ ...prev, stars: 0 }));
   };
 
+  const handleFullReset = () => {
+    setState(DEFAULT_STATE);
+    setConfig(null);
+    setParentDashboardOpen(false);
+  };
+
   const handleOpenParentDashboard = () => {
     requirePassword(() => {
       setParentDashboardOpen(true);
@@ -241,6 +247,7 @@ function App() {
         onRemoveStar={handleParentRemoveStar}
         onResetStars={handleResetStars}
         onUpdateConfig={setConfig}
+        onFullReset={handleFullReset}
       />
 
       <ParentApprovalModal

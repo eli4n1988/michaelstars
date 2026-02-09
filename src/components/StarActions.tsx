@@ -9,8 +9,8 @@ interface StarActionsProps {
 
 export function StarActions({ onAdd, onRemove, addBtnRef, disabled }: StarActionsProps) {
   return (
-    <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '30px', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+    <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginBottom: '40px', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
         <button
           className="add-star-btn"
           onClick={onAdd}

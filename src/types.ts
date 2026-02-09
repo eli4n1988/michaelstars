@@ -10,16 +10,24 @@ export interface HistoryEntry {
   date: string;
 }
 
+export interface StarHistoryEntry {
+  action: 'add' | 'remove';
+  date: string;
+  approver: string;
+}
+
 export interface AppState {
   stars: number;
   history: HistoryEntry[];
-  lastStarDate?: string; // ISO date string (YYYY-MM-DD) of last star add/remove
+  starHistory?: StarHistoryEntry[];
+  lastStarDate?: string; // local date string (YYYY-MM-DD) of last star add/remove
 }
 
 export interface AppConfig {
   childName: string;
   password: string;
   selectedRewards: string[];
+  customCosts?: Record<string, number>;
 }
 
 export type PendingAction = 'add' | 'remove' | null;

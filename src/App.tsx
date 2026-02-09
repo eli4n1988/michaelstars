@@ -10,11 +10,11 @@ import { StarActions } from './components/StarActions';
 import { StarGrid } from './components/StarGrid';
 import { RewardsSection } from './components/RewardsSection';
 import { HistorySection } from './components/HistorySection';
-import { ParentZone } from './components/ParentZone';
 import { ParentApprovalModal } from './components/ParentApprovalModal';
 import { PasswordModal } from './components/PasswordModal';
 import { Celebration } from './components/Celebration';
 import { FloatingStar } from './components/FloatingStar';
+import { ParentDashboard } from './components/ParentDashboard';
 
 const DEFAULT_STATE: AppState = { stars: 0, history: [] };
 
@@ -26,6 +26,7 @@ function App() {
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [celebrating, setCelebrating] = useState(false);
   const [floatTrigger, setFloatTrigger] = useState(0);
+  const [parentDashboardOpen, setParentDashboardOpen] = useState(false);
 
   const pendingPasswordAction = useRef<(() => void) | null>(null);
   const addBtnRef = useRef<HTMLButtonElement>(null);
@@ -39,11 +40,16 @@ function App() {
     }
   }, [config]);
 
-  // Build active rewards from config
+  // Build active rewards from config (with custom costs)
   const rewards: Record<string, Reward> = {};
   if (config?.selectedRewards) {
     for (const key of config.selectedRewards) {
-      if (ALL_REWARDS[key]) rewards[key] = ALL_REWARDS[key];
+      if (ALL_REWARDS[key]) {
+        const customCost = config.customCosts?.[key];
+        rewards[key] = customCost != null
+          ? { ...ALL_REWARDS[key], cost: customCost }
+          : ALL_REWARDS[key];
+      }
     }
   }
 
@@ -66,16 +72,29 @@ function App() {
     setPendingAction('remove');
   };
 
-  const handleConfirmStar = (_approver: string) => {
+  const handleConfirmStar = (approver: string) => {
     const action = pendingAction;
     setPendingAction(null);
     const today = getLocalDateStr();
+    const dateStr = new Date().toLocaleDateString('he-IL', {
+      month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+    });
 
     if (action === 'add') {
-      setState((prev) => ({ ...prev, stars: prev.stars + 1, lastStarDate: today }));
+      setState((prev) => ({
+        ...prev,
+        stars: prev.stars + 1,
+        lastStarDate: today,
+        starHistory: [{ action: 'add' as const, date: dateStr, approver }, ...(prev.starHistory || [])].slice(0, 50),
+      }));
       setFloatTrigger((n) => n + 1);
     } else if (action === 'remove') {
-      setState((prev) => ({ ...prev, stars: prev.stars - 1, lastStarDate: today }));
+      setState((prev) => ({
+        ...prev,
+        stars: prev.stars - 1,
+        lastStarDate: today,
+        starHistory: [{ action: 'remove' as const, date: dateStr, approver }, ...(prev.starHistory || [])].slice(0, 50),
+      }));
     }
     playSound('earn');
   };
@@ -124,10 +143,38 @@ function App() {
   };
 
   const handleResetStars = () => {
+    setState((prev) => ({ ...prev, stars: 0 }));
+  };
+
+  const handleOpenParentDashboard = () => {
     requirePassword(() => {
-      if (!confirm('לאפס את כל הכוכבים ל-0? (ההיסטוריה תישמר)')) return;
-      setState((prev) => ({ ...prev, stars: 0 }));
+      setParentDashboardOpen(true);
     });
+  };
+
+  // Parent dashboard: add/remove star (bypasses daily limit)
+  const handleParentAddStar = () => {
+    const dateStr = new Date().toLocaleDateString('he-IL', {
+      month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+    });
+    setState((prev) => ({
+      ...prev,
+      stars: prev.stars + 1,
+      starHistory: [{ action: 'add' as const, date: dateStr, approver: 'הורה (לוח)' }, ...(prev.starHistory || [])].slice(0, 50),
+    }));
+    playSound('earn');
+  };
+
+  const handleParentRemoveStar = () => {
+    if (state.stars <= 0) return;
+    const dateStr = new Date().toLocaleDateString('he-IL', {
+      month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+    });
+    setState((prev) => ({
+      ...prev,
+      stars: prev.stars - 1,
+      starHistory: [{ action: 'remove' as const, date: dateStr, approver: 'הורה (לוח)' }, ...(prev.starHistory || [])].slice(0, 50),
+    }));
   };
 
   const handleDeleteHistory = (index: number) => {
@@ -178,7 +225,23 @@ function App() {
         onDelete={handleDeleteHistory}
       />
 
-      <ParentZone onReset={handleResetStars} />
+      <div className="parent-zone">
+        <button className="reset-btn" onClick={handleOpenParentDashboard}>
+          🔒 כניסת הורים
+        </button>
+      </div>
+
+      <ParentDashboard
+        isOpen={parentDashboardOpen}
+        onClose={() => setParentDashboardOpen(false)}
+        stars={state.stars}
+        starHistory={state.starHistory || []}
+        config={config}
+        onAddStar={handleParentAddStar}
+        onRemoveStar={handleParentRemoveStar}
+        onResetStars={handleResetStars}
+        onUpdateConfig={setConfig}
+      />
 
       <ParentApprovalModal
         pendingAction={pendingAction}

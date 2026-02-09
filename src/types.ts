@@ -13,6 +13,7 @@ export interface HistoryEntry {
 export interface AppState {
   stars: number;
   history: HistoryEntry[];
+  lastStarDate?: string; // ISO date string (YYYY-MM-DD) of last star add/remove
 }
 
 export interface AppConfig {

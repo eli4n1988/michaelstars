@@ -48,11 +48,16 @@ function App() {
   }
 
   // --- Star actions ---
+  const todayStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const starUsedToday = state.lastStarDate === todayStr;
+
   const handleAddStar = () => {
+    if (starUsedToday) return;
     setPendingAction('add');
   };
 
   const handleRemoveStar = () => {
+    if (starUsedToday) return;
     if (state.stars <= 0) return;
     setPendingAction('remove');
   };
@@ -60,12 +65,13 @@ function App() {
   const handleConfirmStar = (_approver: string) => {
     const action = pendingAction;
     setPendingAction(null);
+    const today = new Date().toISOString().slice(0, 10);
 
     if (action === 'add') {
-      setState((prev) => ({ ...prev, stars: prev.stars + 1 }));
+      setState((prev) => ({ ...prev, stars: prev.stars + 1, lastStarDate: today }));
       setFloatTrigger((n) => n + 1);
     } else if (action === 'remove') {
-      setState((prev) => ({ ...prev, stars: prev.stars - 1 }));
+      setState((prev) => ({ ...prev, stars: prev.stars - 1, lastStarDate: today }));
     }
     playSound('earn');
   };
@@ -151,6 +157,7 @@ function App() {
         onAdd={handleAddStar}
         onRemove={handleRemoveStar}
         addBtnRef={addBtnRef}
+        disabled={starUsedToday}
       />
 
       <StarGrid stars={state.stars} />

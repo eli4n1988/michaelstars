@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh api:*)",
+      "Bash(git -C /Users/elikab/Projects/firstproject diff)",
+      "Bash(git -C /Users/elikab/Projects/firstproject log --oneline -5)",
+      "Bash(git -C /Users/elikab/Projects/firstproject add .github/workflows/deploy.yml)",
+      "Bash(git -C /Users/elikab/Projects/firstproject commit -m \"$\\(cat <<''EOF''\nAdd GitHub Actions workflow to deploy dist/ to Pages\n\nPreviously Pages served the source index.html from root, causing a\nwhite screen. This workflow builds with Vite and deploys the dist/\nfolder on every push to main.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git -C /Users/elikab/Projects/firstproject push origin main)",
+      "Bash(gh run list:*)"
+    ]
+  }
+}

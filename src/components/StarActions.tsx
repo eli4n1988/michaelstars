@@ -34,7 +34,7 @@ export function StarActions({ onAdd, onRemove, addBtnRef, disabled }: StarAction
         </button>
       </div>
       {disabled && (
-        <span style={{ fontSize: '0.9rem', color: '#999' }}>
+        <span style={{ fontSize: '0.9rem', color: '#999', marginTop: '20px' }}>
           ⏳ כבר השתמשת בכוכב היום — נסו שוב מחר!
         </span>
       )}

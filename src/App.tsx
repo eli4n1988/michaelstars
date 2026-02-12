@@ -263,8 +263,9 @@ function StarChart({ userId, childId, onBack }: StarChartProps) {
         className="back-btn"
         onClick={onBack}
         title="חזרה לבחירת ילד"
+        aria-label="חזרה לבחירת ילד"
       >
-        ← חזרה
+        חזרה →
       </button>
 
       <h1>הכוכבים של {config.childName}!</h1>

@@ -3,6 +3,7 @@ import { collection, onSnapshot, addDoc, doc, deleteDoc } from 'firebase/firesto
 import { db } from '../firebase';
 import type { AppConfig } from '../types';
 import { Onboarding } from './Onboarding';
+import { ConfirmModal } from './ConfirmModal';
 import { STORAGE_KEY, CONFIG_KEY } from '../constants';
 
 interface ChildSelectorProps {
@@ -24,6 +25,7 @@ export function ChildSelector({ userId, onSelect, onLogout }: ChildSelectorProps
   const [migrationAvailable, setMigrationAvailable] = useState(false);
   const [addingChild, setAddingChild] = useState(false);
   const [addError, setAddError] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     const colRef = collection(db, 'users', userId, 'children');
@@ -104,14 +106,13 @@ export function ChildSelector({ userId, onSelect, onLogout }: ChildSelectorProps
     }
   };
 
-  const handleDeleteChild = async (childId: string, childName: string) => {
-    if (!confirm(`למחוק את "${childName}"? כל הנתונים יימחקו לצמיתות!`)) return;
+  const handleDeleteChild = async (childId: string) => {
     try {
       await deleteDoc(doc(db, 'users', userId, 'children', childId));
     } catch (err) {
       console.error('Failed to delete child:', err);
-      alert('שגיאה במחיקה');
     }
+    setDeleteTarget(null);
   };
 
   if (showAddChild) {
@@ -126,21 +127,9 @@ export function ChildSelector({ userId, onSelect, onLogout }: ChildSelectorProps
     }
     return (
       <>
-        <Onboarding onComplete={handleAddChild} />
+        <Onboarding onComplete={handleAddChild} onCancel={() => setShowAddChild(false)} />
         {addError && (
-          <div style={{
-            position: 'fixed',
-            bottom: '20px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: '#c62828',
-            color: '#fff',
-            padding: '12px 24px',
-            borderRadius: '14px',
-            zIndex: 9999,
-            fontSize: '0.95rem',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-          }}>
+          <div className="error-toast">
             {addError}
           </div>
         )}
@@ -159,85 +148,45 @@ export function ChildSelector({ userId, onSelect, onLogout }: ChildSelectorProps
   }
 
   return (
-    <div className="onboarding" style={{ overflowY: 'auto' }}>
-      <div className="onboarding-step" style={{ maxWidth: '550px', maxHeight: '85vh', overflowY: 'auto' }}>
+    <div className="onboarding child-selector-container">
+      <div className="onboarding-step child-selector-step">
         <h2>⭐ בחרו ילד/ה</h2>
         <p>לחצו על השם כדי לפתוח את לוח הכוכבים</p>
 
         {migrationAvailable && (
-          <div style={{
-            background: '#fff8e1',
-            border: '2px solid #ffd54f',
-            borderRadius: '14px',
-            padding: '14px',
-            marginBottom: '20px',
-            textAlign: 'center',
-          }}>
-            <div style={{ fontWeight: 700, marginBottom: '6px', color: '#333' }}>
+          <div className="migration-box">
+            <div className="migration-title">
               📦 נמצאו נתונים מקומיים
             </div>
-            <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '10px' }}>
+            <div className="migration-desc">
               יש נתונים שמורים מהמכשיר הזה. רוצים לייבא אותם?
             </div>
-            <button className="onboarding-btn" onClick={handleMigrate} style={{ padding: '10px 24px', fontSize: '1rem' }}>
+            <button className="onboarding-btn migration-btn" onClick={handleMigrate}>
               ייבא נתונים
             </button>
           </div>
         )}
 
         {children.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+          <div className="child-list">
             {children.map((child) => (
-              <div
-                key={child.id}
-                style={{
-                  background: '#f8f6ff',
-                  border: '2px solid #e0d6f3',
-                  borderRadius: '16px',
-                  padding: '12px 16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  transition: 'all 0.2s ease',
-                }}
-              >
+              <div key={child.id} className="child-card">
                 <button
+                  className="child-select-btn"
                   onClick={() => onSelect(child.id)}
-                  style={{
-                    flex: 1,
-                    background: 'none',
-                    border: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                    fontSize: '1.1rem',
-                    padding: '4px 0',
-                  }}
                 >
-                  <span style={{ fontWeight: 700, color: '#333' }}>
+                  <span className="child-name">
                     {child.childName}
                   </span>
-                  <span style={{ color: '#888' }}>
+                  <span className="child-stars">
                     ⭐ {child.stars}
                   </span>
                 </button>
                 <button
-                  onClick={() => handleDeleteChild(child.id, child.childName)}
+                  className="child-delete-btn"
+                  onClick={() => setDeleteTarget({ id: child.id, name: child.childName })}
                   title="מחק"
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#ccc',
-                    cursor: 'pointer',
-                    fontSize: '1.1rem',
-                    padding: '4px 6px',
-                    borderRadius: '8px',
-                    transition: 'color 0.2s ease',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = '#e53935'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = '#ccc'; }}
+                  aria-label={`מחק את ${child.childName}`}
                 >
                   ✕
                 </button>
@@ -247,23 +196,33 @@ export function ChildSelector({ userId, onSelect, onLogout }: ChildSelectorProps
         )}
 
         {children.length === 0 && !migrationAvailable && (
-          <div style={{ color: '#999', fontStyle: 'italic', marginBottom: '20px' }}>
+          <div className="child-empty-state">
             עדיין לא הוספתם ילדים. לחצו על הכפתור למטה כדי להתחיל!
           </div>
         )}
 
         <button
-          className="onboarding-btn"
+          className="onboarding-btn child-add-btn"
           onClick={() => setShowAddChild(true)}
-          style={{ marginBottom: '12px' }}
         >
           + הוסף ילד/ה
         </button>
 
-        <button className="modal-cancel" onClick={onLogout} style={{ display: 'block', width: '100%' }}>
+        <button className="modal-cancel child-logout-btn" onClick={onLogout}>
           התנתק
         </button>
       </div>
+
+      <ConfirmModal
+        isOpen={deleteTarget !== null}
+        title="🗑️ מחיקת ילד/ה"
+        message={`למחוק את "${deleteTarget?.name ?? ''}"? כל הנתונים יימחקו לצמיתות!`}
+        confirmText="מחק"
+        cancelText="ביטול"
+        danger
+        onConfirm={() => deleteTarget && handleDeleteChild(deleteTarget.id)}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

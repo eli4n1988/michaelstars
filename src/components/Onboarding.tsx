@@ -4,9 +4,10 @@ import type { AppConfig } from '../types';
 
 interface OnboardingProps {
   onComplete: (config: AppConfig) => void;
+  onCancel?: () => void;
 }
 
-export function Onboarding({ onComplete }: OnboardingProps) {
+export function Onboarding({ onComplete, onCancel }: OnboardingProps) {
   const [step, setStep] = useState(1);
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
@@ -15,6 +16,8 @@ export function Onboarding({ onComplete }: OnboardingProps) {
   const [nameError, setNameError] = useState('');
   const [passError, setPassError] = useState('');
   const [prizeError, setPrizeError] = useState('');
+
+  const totalSteps = 3;
 
   const handleStep1 = () => {
     if (!name.trim()) {
@@ -62,10 +65,27 @@ export function Onboarding({ onComplete }: OnboardingProps) {
     });
   };
 
+  const handleBack = () => {
+    if (step > 1) {
+      setStep(step - 1);
+    } else if (onCancel) {
+      onCancel();
+    }
+  };
+
+  const stepIndicator = (
+    <div className="step-indicator">
+      {Array.from({ length: totalSteps }, (_, i) => (
+        <span key={i} className={`step-dot ${i + 1 === step ? 'active' : ''} ${i + 1 < step ? 'done' : ''}`} />
+      ))}
+    </div>
+  );
+
   return (
     <div className="onboarding">
       {step === 1 && (
         <div className="onboarding-step">
+          {stepIndicator}
           <h2>⭐ ברוכים הבאים!</h2>
           <p>מה השם של הילד/ה?</p>
           <input
@@ -77,35 +97,41 @@ export function Onboarding({ onComplete }: OnboardingProps) {
             autoFocus
           />
           <div className="error-msg">{nameError}</div>
-          <button className="onboarding-btn" onClick={handleStep1}>הבא ←</button>
+          <button className="onboarding-btn" onClick={handleStep1}>הבא</button>
+          {onCancel && (
+            <button className="modal-cancel" onClick={onCancel}>ביטול</button>
+          )}
         </div>
       )}
 
       {step === 2 && (
         <div className="onboarding-step">
-          <h2>🔒 סיסמת הורה</h2>
-          <p>בחרו סיסמה להגנה על פעולות הורה</p>
+          {stepIndicator}
+          <h2>🔒 קוד גישה להורים</h2>
+          <p>בחרו קוד פשוט (PIN) להגנה על לוח ההורים במכשיר הילד/ה</p>
           <input
             type="password"
-            placeholder="סיסמה"
+            placeholder="קוד גישה"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoFocus
           />
           <input
             type="password"
-            placeholder="אימות סיסמה"
+            placeholder="אימות קוד גישה"
             value={passwordConfirm}
             onChange={(e) => setPasswordConfirm(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleStep2()}
           />
           <div className="error-msg">{passError}</div>
-          <button className="onboarding-btn" onClick={handleStep2}>הבא ←</button>
+          <button className="onboarding-btn" onClick={handleStep2}>הבא</button>
+          <button className="modal-cancel" onClick={handleBack}>חזרה</button>
         </div>
       )}
 
       {step === 3 && (
         <div className="onboarding-step">
+          {stepIndicator}
           <h2>🎁 בחרו פרסים!</h2>
           <p>לחצו לבחירת הפרסים (לפחות 1)</p>
           <div className="prize-grid">
@@ -122,7 +148,8 @@ export function Onboarding({ onComplete }: OnboardingProps) {
             ))}
           </div>
           <div className="error-msg">{prizeError}</div>
-          <button className="onboarding-btn" onClick={handleFinish}>!סיים</button>
+          <button className="onboarding-btn" onClick={handleFinish}>סיים!</button>
+          <button className="modal-cancel" onClick={handleBack}>חזרה</button>
         </div>
       )}
     </div>

@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from '../firebase';
 
 interface LoginScreenProps {
   onLogin: (email: string, password: string) => Promise<void>;
@@ -12,6 +14,7 @@ export function LoginScreen({ onLogin, onRegister }: LoginScreenProps) {
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   const handleSubmit = async () => {
     setError('');
@@ -64,14 +67,14 @@ export function LoginScreen({ onLogin, onRegister }: LoginScreenProps) {
         <p>{isRegister ? 'צרו חשבון חדש' : 'התחברו לחשבון שלכם'}</p>
 
         <input
-          type="text"
+          type="email"
           placeholder="אימייל"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
           autoFocus
           dir="ltr"
-          style={{ textAlign: 'center' }}
+          className="login-input-ltr"
         />
 
         <input
@@ -81,7 +84,7 @@ export function LoginScreen({ onLogin, onRegister }: LoginScreenProps) {
           onChange={(e) => setPassword(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && !isRegister && handleSubmit()}
           dir="ltr"
-          style={{ textAlign: 'center' }}
+          className="login-input-ltr"
         />
 
         {isRegister && (
@@ -92,7 +95,7 @@ export function LoginScreen({ onLogin, onRegister }: LoginScreenProps) {
             onChange={(e) => setPasswordConfirm(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
             dir="ltr"
-            style={{ textAlign: 'center' }}
+            className="login-input-ltr"
           />
         )}
 
@@ -102,21 +105,47 @@ export function LoginScreen({ onLogin, onRegister }: LoginScreenProps) {
           className="onboarding-btn"
           onClick={handleSubmit}
           disabled={loading}
-          style={loading ? { opacity: 0.6 } : undefined}
         >
           {loading ? '...' : isRegister ? 'הרשמה' : 'התחברות'}
         </button>
 
         <button
-          className="modal-cancel"
+          className="modal-cancel login-toggle-btn"
           onClick={() => {
             setIsRegister(!isRegister);
             setError('');
+            setResetSent(false);
           }}
-          style={{ marginTop: '15px', display: 'block', width: '100%' }}
         >
           {isRegister ? 'כבר יש לי חשבון — התחברות' : 'אין לי חשבון — הרשמה'}
         </button>
+
+        {!isRegister && (
+          <button
+            className="modal-cancel login-forgot-btn"
+            onClick={async () => {
+              if (!email.trim()) {
+                setError('הזינו אימייל כדי לאפס סיסמה');
+                return;
+              }
+              try {
+                await sendPasswordResetEmail(auth, email.trim());
+                setResetSent(true);
+                setError('');
+              } catch {
+                setError('שגיאה בשליחת אימייל לאיפוס. בדקו את הכתובת');
+              }
+            }}
+          >
+            שכחתי סיסמה
+          </button>
+        )}
+
+        {resetSent && (
+          <div className="forgot-password-success">
+            נשלח אימייל לאיפוס סיסמה! בדקו את תיבת הדואר
+          </div>
+        )}
       </div>
     </div>
   );

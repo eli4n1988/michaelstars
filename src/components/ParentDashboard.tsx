@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { AppConfig, StarHistoryEntry, Reward } from '../types';
 import { ALL_REWARDS } from '../constants';
+import { ConfirmModal } from './ConfirmModal';
 
 interface ParentDashboardProps {
   isOpen: boolean;
@@ -39,6 +40,7 @@ export function ParentDashboard({
     return costs;
   });
   const [saved, setSaved] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<null | 'reset' | 'fullReset'>(null);
 
   if (!isOpen) return null;
 
@@ -75,9 +77,7 @@ export function ParentDashboard({
   };
 
   const handleResetStars = () => {
-    if (confirm('לאפס את כל הכוכבים ל-0? (ההיסטוריה תישמר)')) {
-      onResetStars();
-    }
+    setConfirmAction('reset');
   };
 
   const tabs: { id: Tab; label: string; icon: string }[] = [
@@ -91,7 +91,7 @@ export function ParentDashboard({
       <div className="parent-dashboard">
         <div className="pd-header">
           <h2>לוח הורים</h2>
-          <button className="pd-close-btn" onClick={onClose}>✕</button>
+          <button className="pd-close-btn" onClick={onClose} aria-label="סגור לוח הורים">✕</button>
         </div>
 
         <div className="pd-tabs">
@@ -133,11 +133,7 @@ export function ParentDashboard({
               <button
                 className="pd-btn pd-btn-reset"
                 style={{ color: '#e53935' }}
-                onClick={() => {
-                  if (confirm('לאפס הכל ולחזור להגדרה מחדש? כל הנתונים יימחקו!')) {
-                    onFullReset();
-                  }
-                }}
+                onClick={() => setConfirmAction('fullReset')}
               >
                 🗑️ איפוס מלא (חזרה להגדרה מחדש)
               </button>
@@ -206,6 +202,28 @@ export function ParentDashboard({
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={confirmAction === 'reset'}
+        title="🔄 איפוס כוכבים"
+        message="לאפס את כל הכוכבים ל-0? (ההיסטוריה תישמר)"
+        confirmText="אפס"
+        cancelText="ביטול"
+        danger
+        onConfirm={() => { onResetStars(); setConfirmAction(null); }}
+        onCancel={() => setConfirmAction(null)}
+      />
+
+      <ConfirmModal
+        isOpen={confirmAction === 'fullReset'}
+        title="🗑️ איפוס מלא"
+        message="לאפס הכל ולחזור להגדרה מחדש? כל הנתונים יימחקו לצמיתות!"
+        confirmText="מחק הכל"
+        cancelText="ביטול"
+        danger
+        onConfirm={() => { onFullReset(); setConfirmAction(null); }}
+        onCancel={() => setConfirmAction(null)}
+      />
     </div>
   );
 }

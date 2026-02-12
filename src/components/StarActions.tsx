@@ -15,6 +15,7 @@ export function StarActions({ onAdd, onRemove, addBtnRef, disabled }: StarAction
           className="add-star-btn"
           onClick={onAdd}
           title="הוסף כוכב על התנהגות טובה!"
+          aria-label="הוסף כוכב"
           ref={addBtnRef}
           disabled={disabled}
           style={disabled ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
@@ -26,6 +27,7 @@ export function StarActions({ onAdd, onRemove, addBtnRef, disabled }: StarAction
           className="remove-star-btn"
           onClick={onRemove}
           title="הסר כוכב על התנהגות לא טובה"
+          aria-label="הסר כוכב"
           disabled={disabled}
           style={disabled ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
         >
@@ -34,7 +36,7 @@ export function StarActions({ onAdd, onRemove, addBtnRef, disabled }: StarAction
         </button>
       </div>
       {disabled && (
-        <span style={{ fontSize: '0.9rem', color: '#999', marginTop: '20px' }}>
+        <span className="star-disabled-msg">
           ⏳ כבר השתמשת בכוכב היום — נסו שוב מחר!
         </span>
       )}

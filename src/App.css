@@ -34,6 +34,26 @@ body {
   100% { background-position: 0% 50%; }
 }
 
+/* ── Back Button ── */
+.back-btn {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.8);
+  border-radius: var(--btn-radius);
+  padding: 6px 18px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 8px;
+}
+
+.back-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
 /* ── Title ── */
 h1 {
   color: #fff;

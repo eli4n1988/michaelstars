@@ -1,0 +1,14 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Each parent can only read/write their own children's data
+    match /users/{userId}/children/{childId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Block all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

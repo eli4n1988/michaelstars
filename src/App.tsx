@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import './App.css';
-import type { AppState, AppConfig, PendingAction, Reward } from './types';
-import { STORAGE_KEY, CONFIG_KEY, ALL_REWARDS } from './constants';
-import { useLocalStorage } from './hooks/useLocalStorage';
+import type { AppState, PendingAction, Reward } from './types';
+import { ALL_REWARDS } from './constants';
+import { useAuth } from './hooks/useAuth';
+import { useChildData } from './hooks/useChildData';
 import { useSound } from './hooks/useSound';
-import { Onboarding } from './components/Onboarding';
+import { LoginScreen } from './components/LoginScreen';
+import { ChildSelector } from './components/ChildSelector';
 import { StarCounter } from './components/StarCounter';
 import { StarActions } from './components/StarActions';
 import { StarGrid } from './components/StarGrid';
@@ -16,11 +18,54 @@ import { Celebration } from './components/Celebration';
 import { FloatingStar } from './components/FloatingStar';
 import { ParentDashboard } from './components/ParentDashboard';
 
-const DEFAULT_STATE: AppState = { stars: 0, history: [] };
-
 function App() {
-  const [config, setConfig] = useLocalStorage<AppConfig | null>(CONFIG_KEY, null);
-  const [state, setState] = useLocalStorage<AppState>(STORAGE_KEY, DEFAULT_STATE);
+  const { user, loading: authLoading, login, register, logout } = useAuth();
+  const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
+
+  // Auth gate
+  if (authLoading) {
+    return (
+      <div className="onboarding">
+        <div className="onboarding-step">
+          <h2>⭐ טוען...</h2>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LoginScreen onLogin={login} onRegister={register} />;
+  }
+
+  if (!selectedChildId) {
+    return (
+      <ChildSelector
+        userId={user.uid}
+        onSelect={setSelectedChildId}
+        onLogout={logout}
+      />
+    );
+  }
+
+  return (
+    <StarChart
+      userId={user.uid}
+      childId={selectedChildId}
+      onBack={() => setSelectedChildId(null)}
+    />
+  );
+}
+
+// ─── Star Chart (the main child view) ───────────────────────────────────────
+
+interface StarChartProps {
+  userId: string;
+  childId: string;
+  onBack: () => void;
+}
+
+function StarChart({ userId, childId, onBack }: StarChartProps) {
+  const { config, state, setConfig, setState, loading } = useChildData(userId, childId);
 
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
@@ -81,7 +126,7 @@ function App() {
     });
 
     if (action === 'add') {
-      setState((prev) => ({
+      setState((prev: AppState) => ({
         ...prev,
         stars: prev.stars + 1,
         lastStarDate: today,
@@ -89,7 +134,7 @@ function App() {
       }));
       setFloatTrigger((n) => n + 1);
     } else if (action === 'remove') {
-      setState((prev) => ({
+      setState((prev: AppState) => ({
         ...prev,
         stars: prev.stars - 1,
         lastStarDate: today,
@@ -109,7 +154,7 @@ function App() {
     const r = rewards[key];
     const date = new Date().toLocaleDateString('he-IL', { month: 'short', day: 'numeric' });
 
-    setState((prev) => ({
+    setState((prev: AppState) => ({
       ...prev,
       stars: prev.stars - cost,
       history: [{ name: r.name, emoji: r.emoji, date }, ...prev.history].slice(0, 20),
@@ -143,13 +188,13 @@ function App() {
   };
 
   const handleResetStars = () => {
-    setState((prev) => ({ ...prev, stars: 0 }));
+    setState((prev: AppState) => ({ ...prev, stars: 0 }));
   };
 
   const handleFullReset = () => {
-    setState(DEFAULT_STATE);
-    setConfig(null);
+    setConfig(null); // Deletes child document from Firestore
     setParentDashboardOpen(false);
+    onBack(); // Go back to child selector
   };
 
   const handleOpenParentDashboard = () => {
@@ -163,7 +208,7 @@ function App() {
     const dateStr = new Date().toLocaleDateString('he-IL', {
       month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
     });
-    setState((prev) => ({
+    setState((prev: AppState) => ({
       ...prev,
       stars: prev.stars + 1,
       starHistory: [{ action: 'add' as const, date: dateStr, approver: 'הורה (לוח)' }, ...(prev.starHistory || [])].slice(0, 50),
@@ -176,7 +221,7 @@ function App() {
     const dateStr = new Date().toLocaleDateString('he-IL', {
       month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
     });
-    setState((prev) => ({
+    setState((prev: AppState) => ({
       ...prev,
       stars: prev.stars - 1,
       starHistory: [{ action: 'remove' as const, date: dateStr, approver: 'הורה (לוח)' }, ...(prev.starHistory || [])].slice(0, 50),
@@ -185,7 +230,7 @@ function App() {
 
   const handleDeleteHistory = (index: number) => {
     requirePassword(() => {
-      setState((prev) => {
+      setState((prev: AppState) => {
         const entry = prev.history[index];
         const rewardKey = Object.keys(ALL_REWARDS).find((k) => ALL_REWARDS[k].name === entry.name);
         const refund = rewardKey ? ALL_REWARDS[rewardKey].cost : 0;
@@ -196,17 +241,32 @@ function App() {
     });
   };
 
-  // --- Onboarding ---
-  const handleOnboardingComplete = (newConfig: AppConfig) => {
-    setConfig(newConfig);
-  };
+  if (loading) {
+    return (
+      <div className="onboarding">
+        <div className="onboarding-step">
+          <h2>⭐ טוען...</h2>
+        </div>
+      </div>
+    );
+  }
 
   if (!config) {
-    return <Onboarding onComplete={handleOnboardingComplete} />;
+    // Child document was deleted or doesn't exist
+    onBack();
+    return null;
   }
 
   return (
     <>
+      <button
+        className="back-btn"
+        onClick={onBack}
+        title="חזרה לבחירת ילד"
+      >
+        ← חזרה
+      </button>
+
       <h1>הכוכבים של {config.childName}!</h1>
 
       <StarCounter stars={state.stars} />

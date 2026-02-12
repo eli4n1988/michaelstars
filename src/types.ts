@@ -30,4 +30,7 @@ export interface AppConfig {
   customCosts?: Record<string, number>;
 }
 
+/** Combined type representing a child document in Firestore */
+export type ChildProfile = AppConfig & AppState;
+
 export type PendingAction = 'add' | 'remove' | null;

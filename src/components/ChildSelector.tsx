@@ -79,24 +79,65 @@ export function ChildSelector({ userId, onSelect, onLogout }: ChildSelectorProps
     }
   };
 
+  const [addingChild, setAddingChild] = useState(false);
+  const [addError, setAddError] = useState('');
+
   const handleAddChild = async (config: AppConfig) => {
-    const colRef = collection(db, 'users', userId, 'children');
-    const docRef = await addDoc(colRef, {
-      childName: config.childName,
-      password: config.password,
-      selectedRewards: config.selectedRewards,
-      customCosts: null,
-      stars: 0,
-      history: [],
-      starHistory: [],
-      lastStarDate: null,
-    });
-    setShowAddChild(false);
-    onSelect(docRef.id);
+    setAddingChild(true);
+    setAddError('');
+    try {
+      const colRef = collection(db, 'users', userId, 'children');
+      const docRef = await addDoc(colRef, {
+        childName: config.childName,
+        password: config.password,
+        selectedRewards: config.selectedRewards,
+        customCosts: null,
+        stars: 0,
+        history: [],
+        starHistory: [],
+        lastStarDate: null,
+      });
+      setShowAddChild(false);
+      onSelect(docRef.id);
+    } catch (err) {
+      console.error('Failed to add child:', err);
+      setAddError('שגיאה בשמירת הנתונים. בדקו את חיבור האינטרנט ונסו שוב.');
+      setAddingChild(false);
+    }
   };
 
   if (showAddChild) {
-    return <Onboarding onComplete={handleAddChild} />;
+    if (addingChild) {
+      return (
+        <div className="onboarding">
+          <div className="onboarding-step">
+            <h2>⭐ שומר...</h2>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <>
+        <Onboarding onComplete={handleAddChild} />
+        {addError && (
+          <div style={{
+            position: 'fixed',
+            bottom: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: '#c62828',
+            color: '#fff',
+            padding: '12px 24px',
+            borderRadius: '14px',
+            zIndex: 9999,
+            fontSize: '0.95rem',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+          }}>
+            {addError}
+          </div>
+        )}
+      </>
+    );
   }
 
   if (loading) {

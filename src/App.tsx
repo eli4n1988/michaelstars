@@ -99,20 +99,11 @@ function StarChart({ userId, childId, onBack }: StarChartProps) {
   }
 
   // --- Star actions ---
-  const getLocalDateStr = () => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  };
-  const todayStr = getLocalDateStr();
-  const starUsedToday = state.lastStarDate === todayStr;
-
   const handleAddStar = () => {
-    if (starUsedToday) return;
     setPendingAction('add');
   };
 
   const handleRemoveStar = () => {
-    if (starUsedToday) return;
     if (state.stars <= 0) return;
     setPendingAction('remove');
   };
@@ -120,7 +111,6 @@ function StarChart({ userId, childId, onBack }: StarChartProps) {
   const handleConfirmStar = (approver: string) => {
     const action = pendingAction;
     setPendingAction(null);
-    const today = getLocalDateStr();
     const dateStr = new Date().toLocaleDateString('he-IL', {
       month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
     });
@@ -129,7 +119,6 @@ function StarChart({ userId, childId, onBack }: StarChartProps) {
       setState((prev: AppState) => ({
         ...prev,
         stars: prev.stars + 1,
-        lastStarDate: today,
         starHistory: [{ action: 'add' as const, date: dateStr, approver }, ...(prev.starHistory || [])].slice(0, 50),
       }));
       setFloatTrigger((n) => n + 1);
@@ -137,7 +126,6 @@ function StarChart({ userId, childId, onBack }: StarChartProps) {
       setState((prev: AppState) => ({
         ...prev,
         stars: prev.stars - 1,
-        lastStarDate: today,
         starHistory: [{ action: 'remove' as const, date: dateStr, approver }, ...(prev.starHistory || [])].slice(0, 50),
       }));
     }
@@ -276,7 +264,6 @@ function StarChart({ userId, childId, onBack }: StarChartProps) {
         onAdd={handleAddStar}
         onRemove={handleRemoveStar}
         addBtnRef={addBtnRef}
-        disabled={starUsedToday}
       />
 
       <StarGrid stars={state.stars} />

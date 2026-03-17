@@ -30,25 +30,18 @@ export function useChildData(userId: string, childId: string) {
   const [config, setConfigLocal] = useState<AppConfig | null>(null);
   const [state, setStateLocal] = useState<AppState>(DEFAULT_STATE);
   const [loading, setLoading] = useState(true);
+  const [writeError, setWriteError] = useState<string | null>(null);
 
   const stateRef = useRef(state);
   stateRef.current = state;
   const configRef = useRef(config);
   configRef.current = config;
 
-  // Skip onSnapshot callbacks that echo back our own writes
-  const pendingWrites = useRef(0);
-
   const docRef = doc(db, 'users', userId, 'children', childId);
 
   useEffect(() => {
     setLoading(true);
     const unsubscribe = onSnapshot(docRef, (snap) => {
-      if (pendingWrites.current > 0) {
-        pendingWrites.current--;
-        setLoading(false);
-        return;
-      }
       if (snap.exists()) {
         const data = snap.data();
         setConfigLocal({
@@ -88,9 +81,10 @@ export function useChildData(userId: string, childId: string) {
         starHistory: newState.starHistory ?? [],
         lastStarDate: newState.lastStarDate ?? null,
       }) as Record<string, unknown>;
-      pendingWrites.current++;
+      setWriteError(null);
       setDoc(docRef, data, { merge: true }).catch((err) => {
         console.error('Firestore write failed:', err);
+        setWriteError(String(err));
       });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -127,5 +121,5 @@ export function useChildData(userId: string, childId: string) {
     [writeDoc],
   );
 
-  return { config, state, setConfig, setState, loading };
+  return { config, state, setConfig, setState, loading, writeError };
 }

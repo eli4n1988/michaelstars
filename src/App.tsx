@@ -65,7 +65,7 @@ interface StarChartProps {
 }
 
 function StarChart({ userId, childId, onBack }: StarChartProps) {
-  const { config, state, setConfig, setState, loading } = useChildData(userId, childId);
+  const { config, state, setConfig, setState, loading, writeError } = useChildData(userId, childId);
 
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
@@ -257,6 +257,12 @@ function StarChart({ userId, childId, onBack }: StarChartProps) {
       </button>
 
       <h1>הכוכבים של {config.childName}!</h1>
+
+      {writeError && (
+        <div style={{ background: '#ffebee', color: '#c62828', padding: '12px', borderRadius: '8px', margin: '8px 16px', fontSize: '13px', direction: 'ltr', wordBreak: 'break-all' }}>
+          Firestore error: {writeError}
+        </div>
+      )}
 
       <StarCounter stars={state.stars} />
 

@@ -31,17 +31,24 @@ export function useChildData(userId: string, childId: string) {
   const [state, setStateLocal] = useState<AppState>(DEFAULT_STATE);
   const [loading, setLoading] = useState(true);
 
-  // Keep latest values in refs for use in callbacks
   const stateRef = useRef(state);
   stateRef.current = state;
   const configRef = useRef(config);
   configRef.current = config;
+
+  // Skip onSnapshot callbacks that echo back our own writes
+  const pendingWrites = useRef(0);
 
   const docRef = doc(db, 'users', userId, 'children', childId);
 
   useEffect(() => {
     setLoading(true);
     const unsubscribe = onSnapshot(docRef, (snap) => {
+      if (pendingWrites.current > 0) {
+        pendingWrites.current--;
+        setLoading(false);
+        return;
+      }
       if (snap.exists()) {
         const data = snap.data();
         setConfigLocal({
@@ -50,15 +57,18 @@ export function useChildData(userId: string, childId: string) {
           selectedRewards: data.selectedRewards ?? [],
           customCosts: data.customCosts,
         });
-        setStateLocal({
+        const newState: AppState = {
           stars: data.stars ?? 0,
           history: data.history ?? [],
           starHistory: data.starHistory ?? [],
           lastStarDate: data.lastStarDate,
-        });
+        };
+        setStateLocal(newState);
+        stateRef.current = newState;
       } else {
         setConfigLocal(null);
         setStateLocal(DEFAULT_STATE);
+        stateRef.current = DEFAULT_STATE;
       }
       setLoading(false);
     });
@@ -66,7 +76,6 @@ export function useChildData(userId: string, childId: string) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, childId]);
 
-  // Merge-write only the fields the web app manages
   const writeDoc = useCallback(
     (newConfig: AppConfig, newState: AppState) => {
       const data = stripUndefined({
@@ -79,6 +88,7 @@ export function useChildData(userId: string, childId: string) {
         starHistory: newState.starHistory ?? [],
         lastStarDate: newState.lastStarDate ?? null,
       }) as Record<string, unknown>;
+      pendingWrites.current++;
       setDoc(docRef, data, { merge: true }).catch((err) => {
         console.error('Firestore write failed:', err);
       });
@@ -91,10 +101,8 @@ export function useChildData(userId: string, childId: string) {
     (action: AppState | ((prev: AppState) => AppState)) => {
       const prev = stateRef.current;
       const next = typeof action === 'function' ? action(prev) : action;
-      // Optimistic local update
       setStateLocal(next);
       stateRef.current = next;
-      // Write to Firestore
       if (configRef.current) {
         writeDoc(configRef.current, next);
       }
@@ -105,10 +113,10 @@ export function useChildData(userId: string, childId: string) {
   const setConfig = useCallback(
     (newConfig: AppConfig | null) => {
       if (newConfig === null) {
-        // Delete the child document
         deleteDoc(docRef);
         setConfigLocal(null);
         setStateLocal(DEFAULT_STATE);
+        stateRef.current = DEFAULT_STATE;
       } else {
         setConfigLocal(newConfig);
         configRef.current = newConfig;

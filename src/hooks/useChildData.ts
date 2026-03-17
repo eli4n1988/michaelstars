@@ -10,6 +10,18 @@ import type { AppState, AppConfig } from '../types';
 
 const DEFAULT_STATE: AppState = { stars: 0, history: [] };
 
+/** Recursively replace undefined with null so Firestore doesn't reject the write */
+function stripUndefined(obj: unknown): unknown {
+  if (obj === undefined) return null;
+  if (obj === null || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(stripUndefined);
+  const clean: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+    clean[k] = stripUndefined(v);
+  }
+  return clean;
+}
+
 /**
  * Hook that subscribes to a child's Firestore document and provides
  * config/state getters and setters compatible with the existing app logic.
@@ -54,10 +66,10 @@ export function useChildData(userId: string, childId: string) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, childId]);
 
-  // Write the full document to Firestore from config + state
+  // Merge-write only the fields the web app manages
   const writeDoc = useCallback(
     (newConfig: AppConfig, newState: AppState) => {
-      setDoc(docRef, {
+      const data = stripUndefined({
         childName: newConfig.childName,
         password: newConfig.password,
         selectedRewards: newConfig.selectedRewards,
@@ -66,6 +78,9 @@ export function useChildData(userId: string, childId: string) {
         history: newState.history,
         starHistory: newState.starHistory ?? [],
         lastStarDate: newState.lastStarDate ?? null,
+      }) as Record<string, unknown>;
+      setDoc(docRef, data, { merge: true }).catch((err) => {
+        console.error('Firestore write failed:', err);
       });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps

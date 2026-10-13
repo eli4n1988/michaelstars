@@ -17,6 +17,7 @@ import { PasswordModal } from './components/PasswordModal';
 import { Celebration } from './components/Celebration';
 import { FloatingStar } from './components/FloatingStar';
 import { ParentDashboard } from './components/ParentDashboard';
+import { SchoolWeekTable } from './components/SchoolWeekTable';
 import { RoleSelect } from './components/RoleSelect';
 import { TeacherLogin } from './components/TeacherLogin';
 import { TeacherApp } from './components/TeacherApp';
@@ -168,14 +169,14 @@ function StarChart({ userId, childId, onBack }: StarChartProps) {
       setState((prev: AppState) => ({
         ...prev,
         stars: prev.stars + 1,
-        starHistory: [{ action: 'add' as const, date: dateStr, approver }, ...(prev.starHistory || [])].slice(0, 50),
+        starHistory: [{ action: 'add' as const, date: dateStr, approver, at: Date.now() }, ...(prev.starHistory || [])].slice(0, 50),
       }));
       setFloatTrigger((n) => n + 1);
     } else if (action === 'remove') {
       setState((prev: AppState) => ({
         ...prev,
         stars: prev.stars - 1,
-        starHistory: [{ action: 'remove' as const, date: dateStr, approver }, ...(prev.starHistory || [])].slice(0, 50),
+        starHistory: [{ action: 'remove' as const, date: dateStr, approver, at: Date.now() }, ...(prev.starHistory || [])].slice(0, 50),
       }));
     }
     playSound('earn');
@@ -248,7 +249,7 @@ function StarChart({ userId, childId, onBack }: StarChartProps) {
     setState((prev: AppState) => ({
       ...prev,
       stars: prev.stars + 1,
-      starHistory: [{ action: 'add' as const, date: dateStr, approver: 'הורה (לוח)' }, ...(prev.starHistory || [])].slice(0, 50),
+      starHistory: [{ action: 'add' as const, date: dateStr, approver: 'הורה (לוח)', at: Date.now() }, ...(prev.starHistory || [])].slice(0, 50),
     }));
     playSound('earn');
   };
@@ -261,7 +262,7 @@ function StarChart({ userId, childId, onBack }: StarChartProps) {
     setState((prev: AppState) => ({
       ...prev,
       stars: prev.stars - 1,
-      starHistory: [{ action: 'remove' as const, date: dateStr, approver: 'הורה (לוח)' }, ...(prev.starHistory || [])].slice(0, 50),
+      starHistory: [{ action: 'remove' as const, date: dateStr, approver: 'הורה (לוח)', at: Date.now() }, ...(prev.starHistory || [])].slice(0, 50),
     }));
   };
 
@@ -322,6 +323,18 @@ function StarChart({ userId, childId, onBack }: StarChartProps) {
       />
 
       <StarGrid stars={state.stars} />
+
+      {teacherData.teacher && (
+        <div className="school-card">
+          <h2 className="school-card-title">📅 השבוע של {config.childName}</h2>
+          <SchoolWeekTable
+            teacher={teacherData.teacher}
+            lessonMarks={teacherData.lessonMarks}
+            parentHistory={state.starHistory || []}
+            showNotes={false}
+          />
+        </div>
+      )}
 
       <RewardsSection
         rewards={rewards}

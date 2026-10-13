@@ -1,14 +1,18 @@
 import { useState } from 'react';
-import type { LessonMarks, TeacherInfo } from '../types';
-import { SCHOOL_DAYS, SCHOOL_DAY_LETTERS, toDateKey, addDays, startOfWeek, formatShortDate } from '../utils/school';
+import type { LessonMarks, StarHistoryEntry, TeacherInfo } from '../types';
+import { SCHOOL_DAYS, SCHOOL_DAY_LETTERS, toDateKey, addDays, startOfWeek, formatShortDate, parentStarsInWeek } from '../utils/school';
 
 interface SchoolWeekTableProps {
   teacher: TeacherInfo;
   lessonMarks: LessonMarks;
+  /** When given, the summary shows parent and teacher stars side by side */
+  parentHistory?: StarHistoryEntry[];
+  /** Show the teacher's note on ⚠️ cells (parents only) */
+  showNotes?: boolean;
 }
 
 /** Read-only week grid for parents: lessons (rows) × school days (columns) */
-export function SchoolWeekTable({ teacher, lessonMarks }: SchoolWeekTableProps) {
+export function SchoolWeekTable({ teacher, lessonMarks, parentHistory, showNotes = true }: SchoolWeekTableProps) {
   const [weekOffset, setWeekOffset] = useState(0);
   const today = new Date();
   const todayKey = toDateKey(today);
@@ -30,10 +34,23 @@ export function SchoolWeekTable({ teacher, lessonMarks }: SchoolWeekTableProps) 
         <button className="tc-week-btn" onClick={() => setWeekOffset((w) => w + 1)} disabled={weekOffset >= 0} aria-label="שבוע הבא">←</button>
       </div>
 
-      <div className="swt-summary">
-        <span>⭐ {weekStars} כוכבים השבוע</span>
-        {weekBad > 0 && <span className="swt-summary-bad">⚠️ {weekBad}</span>}
-      </div>
+      {parentHistory ? (
+        <div className="swt-tiles">
+          <div className="swt-tile">
+            <span className="swt-tile-num">{Math.max(0, parentStarsInWeek(parentHistory, weekStart))}</span>
+            <span className="swt-tile-label">👨‍👩‍👧 מההורים</span>
+          </div>
+          <div className="swt-tile">
+            <span className="swt-tile-num">{weekStars}</span>
+            <span className="swt-tile-label">🏫 מהמורה</span>
+          </div>
+        </div>
+      ) : (
+        <div className="swt-summary">
+          <span>⭐ {weekStars} כוכבים השבוע</span>
+          {weekBad > 0 && <span className="swt-summary-bad">⚠️ {weekBad}</span>}
+        </div>
+      )}
 
       <div className="swt-scroll">
         <table className="swt-table">
@@ -61,8 +78,8 @@ export function SchoolWeekTable({ teacher, lessonMarks }: SchoolWeekTableProps) 
                   return (
                     <td
                       key={key}
-                      className={mark ? `swt-${mark.type}` : future ? 'swt-future' : 'swt-empty'}
-                      title={mark?.type === 'bad' && mark.note ? mark.note : undefined}
+                      className={`${mark ? `swt-${mark.type}` : future ? 'swt-future' : 'swt-empty'} ${showNotes ? '' : 'no-notes'}`}
+                      title={showNotes && mark?.type === 'bad' && mark.note ? mark.note : undefined}
                       aria-label={`יום ${SCHOOL_DAYS[d]} שיעור ${lesson + 1}: ${
                         mark?.type === 'star' ? 'כוכב' : mark?.type === 'bad' ? 'התנהגות לא טובה' : 'ללא סימון'
                       }`}

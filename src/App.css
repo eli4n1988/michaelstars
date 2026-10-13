@@ -1717,6 +1717,41 @@ h1 {
   color: #b8860b;
 }
 
+/* ── Main screen: school week card ── */
+.school-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: var(--card-radius);
+  padding: 18px 16px;
+  /* #root shrinks to its content, so size against the viewport */
+  width: min(600px, calc(100vw - 56px));
+  margin: 10px auto 24px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+.school-card-title {
+  text-align: center;
+  font-size: 1.3rem;
+  color: #333;
+  margin-bottom: 12px;
+}
+.swt-tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.swt-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  border-radius: 16px;
+  background: #fffbe6;
+  border: 2px solid #ffe082;
+}
+.swt-tile-num { font-size: 1.8rem; font-weight: 700; color: #b8860b; line-height: 1.1; }
+.swt-tile-label { font-size: 0.9rem; color: #666; font-weight: 600; }
+.swt-table td.swt-bad.no-notes { cursor: default; }
+
 /* ── Responsive ── */
 @media (max-width: 600px) {
   h1 { font-size: 1.8rem; }

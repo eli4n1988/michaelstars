@@ -1,4 +1,4 @@
-import type { LessonMark, LessonMarks } from '../types';
+import type { LessonMark, LessonMarks, StarHistoryEntry } from '../types';
 
 export const SCHOOL_DAYS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי'];
 export const SCHOOL_DAY_LETTERS = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳'];
@@ -55,4 +55,18 @@ export function getBehaviorAlerts(marks?: LessonMarks | null): BehaviorAlert[] {
 
 export function countUnseenAlerts(marks?: LessonMarks | null): number {
   return getBehaviorAlerts(marks).filter((a) => !a.mark.seen).length;
+}
+
+/** Older versions also logged teacher stars in starHistory; keep only the parents' entries */
+export function isParentEntry(entry: StarHistoryEntry): boolean {
+  return !entry.approver?.startsWith('המורה ');
+}
+
+/** Net stars the parents gave in [from, from + 7 days) — entries without a timestamp are skipped */
+export function parentStarsInWeek(history: StarHistoryEntry[], from: Date): number {
+  const start = from.getTime();
+  const end = addDays(from, 7).getTime();
+  return history
+    .filter((e) => isParentEntry(e) && e.at != null && e.at >= start && e.at < end)
+    .reduce((n, e) => n + (e.action === 'add' ? 1 : -1), 0);
 }

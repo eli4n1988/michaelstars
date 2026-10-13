@@ -14,6 +14,8 @@ export interface StarHistoryEntry {
   action: 'add' | 'remove';
   date: string;
   approver: string;
+  /** ms timestamp (entries from before Oct 2026 don't have one) */
+  at?: number;
 }
 
 export interface AppState {

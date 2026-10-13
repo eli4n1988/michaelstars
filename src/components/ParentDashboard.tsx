@@ -4,7 +4,7 @@ import { ALL_REWARDS } from '../constants';
 import { ConfirmModal } from './ConfirmModal';
 import { TeacherTab } from './TeacherTab';
 import type { TeacherData } from '../hooks/useChildData';
-import { countUnseenAlerts } from '../utils/school';
+import { countUnseenAlerts, isParentEntry } from '../utils/school';
 
 interface ParentDashboardProps {
   isOpen: boolean;
@@ -53,8 +53,7 @@ export function ParentDashboard({
   const [saved, setSaved] = useState(false);
   const [confirmAction, setConfirmAction] = useState<null | 'reset' | 'fullReset'>(null);
   const unseenAlerts = countUnseenAlerts(teacherData.lessonMarks);
-  // Older versions logged teacher stars here too; the teacher's record is the school table now
-  const parentHistory = starHistory.filter((e) => !e.approver?.startsWith('המורה '));
+  const parentHistory = starHistory.filter(isParentEntry);
 
   // Open straight on the teacher tab when there are new behavior reports
   useEffect(() => {

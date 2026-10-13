@@ -1369,6 +1369,303 @@ h1 {
   font-size: 0.85rem;
 }
 
+/* ── Role Select ── */
+.role-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.role-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 12px;
+  border: 2px solid #e5e0f0;
+  border-radius: 20px;
+  background: #faf8ff;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.25s var(--spring);
+}
+.role-btn:hover {
+  border-color: #764ba2;
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(118, 75, 162, 0.2);
+}
+.role-emoji { font-size: 3rem; }
+.role-label { font-size: 1.3rem; font-weight: 700; color: #333; }
+
+/* ── Schedule Builder ── */
+.tc-setup-step { max-width: 560px; }
+.sb-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.sb-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.sb-count { font-weight: 700; color: #764ba2; font-size: 1.1rem; }
+.sb-stack {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 3px;
+  width: 100%;
+}
+.sb-cell {
+  height: 22px;
+  width: 100%;
+  border: 1.5px dashed #ddd;
+  border-radius: 6px;
+  background: #fafafa;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s ease, transform 0.15s var(--spring);
+}
+.sb-cell:hover { border-color: #b39ddb; }
+.sb-cell.filled {
+  border: none;
+  background: linear-gradient(145deg, #667eea, #764ba2);
+  animation: sbPop 0.25s var(--spring);
+}
+@keyframes sbPop {
+  0% { transform: scale(0.6); }
+  100% { transform: scale(1); }
+}
+.sb-day { font-weight: 700; color: #333; }
+.sb-steppers { display: flex; gap: 3px; width: 100%; }
+.sb-step {
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+  border-radius: 8px;
+  border: none;
+  background: #f0ecf8;
+  color: #764ba2;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+.sb-step:disabled { opacity: 0.35; cursor: default; }
+
+/* ── Teacher Day View ── */
+.tc-topbar {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 520px;
+}
+.tc-topbar .back-btn { align-self: auto; }
+.tc-subtitle {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem;
+  margin: -6px 0 16px;
+  text-align: center;
+}
+.tc-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: var(--card-radius);
+  padding: 20px;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+.tc-week-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  color: #555;
+  margin-bottom: 12px;
+}
+.tc-week-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #f0ecf8;
+  color: #764ba2;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+.tc-week-btn:disabled { opacity: 0.35; cursor: default; }
+.tc-days {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.tc-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 2px;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  background: #f5f3fa;
+  font-family: inherit;
+  cursor: pointer;
+  min-width: 0;
+}
+.tc-day.today { border-color: #ffd54f; }
+.tc-day.active {
+  background: linear-gradient(145deg, #667eea, #764ba2);
+  color: #fff;
+}
+.tc-day-letter { font-weight: 700; font-size: 1.05rem; }
+.tc-day-date { font-size: 0.72rem; opacity: 0.75; }
+.tc-day-stars { font-size: 0.72rem; min-height: 1em; white-space: pre; }
+.tc-info {
+  text-align: center;
+  color: #888;
+  padding: 10px;
+}
+.tc-lessons { display: flex; flex-direction: column; gap: 8px; }
+.tc-lesson {
+  border-radius: 16px;
+  background: #fafafa;
+  border: 2px solid #eee;
+  padding: 10px 14px;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.tc-lesson.star { background: #fffbe6; border-color: #ffd54f; }
+.tc-lesson.bad { background: #fff1f0; border-color: #ef9a9a; }
+.tc-lesson-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.tc-lesson-name { font-weight: 700; color: #333; font-size: 1.05rem; }
+.tc-lesson-actions { display: flex; gap: 8px; }
+.tc-mark-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid #e0e0e0;
+  background: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  filter: grayscale(1);
+  opacity: 0.55;
+  transition: all 0.2s var(--spring);
+}
+.tc-mark-btn:hover:not(:disabled) { opacity: 0.9; filter: none; }
+.tc-mark-btn.on {
+  filter: none;
+  opacity: 1;
+  transform: scale(1.1);
+}
+.tc-mark-btn.star.on { border-color: #ffc107; box-shadow: 0 0 12px var(--gold-shadow); }
+.tc-mark-btn.bad.on { border-color: #e57373; box-shadow: 0 0 12px rgba(229, 115, 115, 0.5); }
+.tc-mark-btn:disabled { cursor: default; }
+.tc-lesson-note {
+  margin-top: 6px;
+  color: #c62828;
+  font-size: 0.9rem;
+}
+.tc-error {
+  margin-top: 12px;
+  color: #c62828;
+  text-align: center;
+}
+.tc-legend {
+  margin-top: 14px;
+  text-align: center;
+  color: #999;
+  font-size: 0.82rem;
+}
+.tc-edit-btn { margin-top: 18px; }
+.tc-note-input {
+  width: 100%;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  padding: 10px;
+  font-family: inherit;
+  font-size: 1rem;
+  resize: none;
+  margin-bottom: 14px;
+  outline: none;
+}
+.tc-note-input:focus { border-color: #764ba2; }
+.tc-code-input { letter-spacing: 0.3em; font-weight: 700; }
+
+/* ── Parent: teacher tab ── */
+.pd-tab-badge {
+  display: inline-block;
+  min-width: 20px;
+  padding: 1px 6px;
+  margin-inline-start: 6px;
+  border-radius: 10px;
+  background: #e53935;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 18px;
+  vertical-align: middle;
+}
+.pd-subtitle { font-weight: 700; color: #333; }
+.pd-divider { border: none; border-top: 1px solid #eee; margin: 4px 0; }
+.pd-alert {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fff1f0;
+  border: 1px solid #ffcdd2;
+}
+.pd-alert.seen { background: #f7f7f7; border-color: #eee; opacity: 0.7; }
+.pd-alert-when { font-weight: 600; color: #333; font-size: 0.92rem; }
+.pd-alert-note { color: #c62828; font-size: 0.88rem; margin-top: 2px; }
+.pd-alert-btn {
+  flex-shrink: 0;
+  border: none;
+  border-radius: var(--btn-radius);
+  padding: 6px 12px;
+  background: #4caf50;
+  color: #fff;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.pd-alert-done { flex-shrink: 0; color: #4caf50; font-size: 0.85rem; font-weight: 600; }
+.pd-teacher-info { color: #555; }
+.pd-teacher-schedule {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 0.88rem;
+  color: #777;
+  margin-top: 4px;
+}
+.pd-code {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  color: #764ba2;
+  background: #f5f3fa;
+  border-radius: 14px;
+  padding: 10px;
+  user-select: all;
+}
+.pd-help { color: #888; font-size: 0.85rem; line-height: 1.5; }
+.child-alerts { color: #e53935; font-weight: 700; font-size: 0.9rem; }
+
 /* ── Responsive ── */
 @media (max-width: 600px) {
   h1 { font-size: 1.8rem; }
@@ -1383,4 +1680,7 @@ h1 {
   .parent-dashboard { max-height: 90vh; }
   .parent-dashboard-overlay { padding: 10px; }
   .pd-content { padding: 16px; }
+  .tc-card { padding: 14px; }
+  .sb-grid, .tc-days { gap: 4px; }
+  .tc-mark-btn { width: 44px; height: 44px; font-size: 1.3rem; }
 }

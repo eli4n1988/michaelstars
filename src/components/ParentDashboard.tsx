@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { AppConfig, StarHistoryEntry, Reward } from '../types';
 import { ALL_REWARDS } from '../constants';
 import { ConfirmModal } from './ConfirmModal';
+import { TeacherTab } from './TeacherTab';
+import type { TeacherData } from '../hooks/useChildData';
+import { countUnseenAlerts } from '../utils/school';
 
 interface ParentDashboardProps {
   isOpen: boolean;
@@ -14,9 +17,12 @@ interface ParentDashboardProps {
   onResetStars: () => void;
   onUpdateConfig: (config: AppConfig) => void;
   onFullReset: () => void;
+  teacherData: TeacherData;
+  onCreateTeacherCode: () => Promise<void>;
+  onMarkAlertSeen: (date: string, lesson: number) => Promise<void>;
 }
 
-type Tab = 'history' | 'prizes' | 'stars';
+type Tab = 'history' | 'prizes' | 'stars' | 'teacher';
 
 export function ParentDashboard({
   isOpen,
@@ -29,6 +35,9 @@ export function ParentDashboard({
   onResetStars,
   onUpdateConfig,
   onFullReset,
+  teacherData,
+  onCreateTeacherCode,
+  onMarkAlertSeen,
 }: ParentDashboardProps) {
   const [activeTab, setActiveTab] = useState<Tab>('stars');
   const [editSelected, setEditSelected] = useState<string[]>([...config.selectedRewards]);
@@ -41,6 +50,13 @@ export function ParentDashboard({
   });
   const [saved, setSaved] = useState(false);
   const [confirmAction, setConfirmAction] = useState<null | 'reset' | 'fullReset'>(null);
+  const unseenAlerts = countUnseenAlerts(teacherData.lessonMarks);
+
+  // Open straight on the teacher tab when there are new behavior reports
+  useEffect(() => {
+    if (isOpen && unseenAlerts > 0) setActiveTab('teacher');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -84,6 +100,7 @@ export function ParentDashboard({
     { id: 'stars', label: 'כוכבים', icon: '⭐' },
     { id: 'history', label: 'היסטוריה', icon: '📋' },
     { id: 'prizes', label: 'פרסים', icon: '🎁' },
+    { id: 'teacher', label: 'מורה', icon: '🧑‍🏫' },
   ];
 
   return (
@@ -102,6 +119,9 @@ export function ParentDashboard({
               onClick={() => setActiveTab(tab.id)}
             >
               <span>{tab.icon}</span> {tab.label}
+              {tab.id === 'teacher' && unseenAlerts > 0 && (
+                <span className="pd-tab-badge">{unseenAlerts}</span>
+              )}
             </button>
           ))}
         </div>
@@ -159,6 +179,16 @@ export function ParentDashboard({
                 )}
               </div>
             </div>
+          )}
+
+          {/* Teacher Tab */}
+          {activeTab === 'teacher' && (
+            <TeacherTab
+              childName={config.childName}
+              teacherData={teacherData}
+              onCreateCode={onCreateTeacherCode}
+              onMarkSeen={onMarkAlertSeen}
+            />
           )}
 
           {/* Prizes Tab */}

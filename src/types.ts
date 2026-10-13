@@ -34,3 +34,28 @@ export interface AppConfig {
 export type ChildProfile = AppConfig & AppState;
 
 export type PendingAction = 'add' | 'remove' | null;
+
+/** Teacher-side data stored on the child document */
+export interface TeacherInfo {
+  name: string;
+  /** Number of lessons per school day, index 0 = Sunday … 5 = Friday */
+  schedule: number[];
+}
+
+export interface LessonMark {
+  type: 'star' | 'bad';
+  at: number;
+  note?: string;
+  /** Parent has talked with the child about this (bad marks only) */
+  seen?: boolean;
+}
+
+/** lessonMarks[YYYY-MM-DD][lessonIndex] */
+export type LessonMarks = Record<string, Record<string, LessonMark>>;
+
+/** A student linked on the teacher's device */
+export interface TeacherLink {
+  parentUid: string;
+  childId: string;
+  childName: string;
+}

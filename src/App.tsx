@@ -17,10 +17,22 @@ import { PasswordModal } from './components/PasswordModal';
 import { Celebration } from './components/Celebration';
 import { FloatingStar } from './components/FloatingStar';
 import { ParentDashboard } from './components/ParentDashboard';
+import { RoleSelect } from './components/RoleSelect';
+import { TeacherLogin } from './components/TeacherLogin';
+import { TeacherApp } from './components/TeacherApp';
+import { TEACHER_EMAIL } from './constants';
+import { countUnseenAlerts } from './utils/school';
 
 function App() {
-  const { user, loading: authLoading, login, register, logout } = useAuth();
+  const { user, loading: authLoading, login, register, loginTeacher, logout } = useAuth();
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
+  const [role, setRole] = useState<'parent' | 'teacher' | null>(null);
+
+  const handleLogout = async () => {
+    setSelectedChildId(null);
+    setRole(null);
+    await logout();
+  };
 
   // Auth gate
   if (authLoading) {
@@ -34,7 +46,17 @@ function App() {
   }
 
   if (!user) {
-    return <LoginScreen onLogin={login} onRegister={register} />;
+    if (role === 'parent') {
+      return <LoginScreen onLogin={login} onRegister={register} onBack={() => setRole(null)} />;
+    }
+    if (role === 'teacher') {
+      return <TeacherLogin onLogin={loginTeacher} onBack={() => setRole(null)} />;
+    }
+    return <RoleSelect onSelect={setRole} />;
+  }
+
+  if (user.email === TEACHER_EMAIL) {
+    return <TeacherApp onLogout={handleLogout} />;
   }
 
   if (!selectedChildId) {
@@ -42,7 +64,7 @@ function App() {
       <ChildSelector
         userId={user.uid}
         onSelect={setSelectedChildId}
-        onLogout={logout}
+        onLogout={handleLogout}
       />
     );
   }
@@ -65,7 +87,11 @@ interface StarChartProps {
 }
 
 function StarChart({ userId, childId, onBack }: StarChartProps) {
-  const { config, state, setConfig, setState, loading, writeError } = useChildData(userId, childId);
+  const {
+    config, state, setConfig, setState, loading, writeError,
+    teacherData, createTeacherCode, markAlertSeen,
+  } = useChildData(userId, childId);
+  const unseenAlerts = countUnseenAlerts(teacherData.lessonMarks);
 
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
@@ -288,6 +314,7 @@ function StarChart({ userId, childId, onBack }: StarChartProps) {
       <div className="parent-zone">
         <button className="reset-btn" onClick={handleOpenParentDashboard}>
           🔒 כניסת הורים
+          {unseenAlerts > 0 && <span className="pd-tab-badge">{unseenAlerts}</span>}
         </button>
       </div>
 
@@ -302,6 +329,9 @@ function StarChart({ userId, childId, onBack }: StarChartProps) {
         onResetStars={handleResetStars}
         onUpdateConfig={setConfig}
         onFullReset={handleFullReset}
+        teacherData={teacherData}
+        onCreateTeacherCode={createTeacherCode}
+        onMarkAlertSeen={markAlertSeen}
       />
 
       <ParentApprovalModal

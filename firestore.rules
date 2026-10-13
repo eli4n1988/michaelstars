@@ -1,9 +1,32 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Each parent can only read/write their own children's data
+    // Shared teacher login (see TEACHER_EMAIL in src/constants.ts)
+    function isTeacher() {
+      return request.auth != null
+        && request.auth.token.email == 'teacher@michaelstars.app';
+    }
+
     match /users/{userId}/children/{childId} {
+      // Each parent can only read/write their own children's data
       allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // The teacher can open a child by its exact path (learned from a link code)
+      // and may only change the star / lesson fields
+      allow get: if isTeacher();
+      allow update: if isTeacher()
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['stars', 'starHistory', 'teacher', 'lessonMarks']);
+    }
+
+    // Link codes: parent creates one, teacher looks it up by code
+    match /teacherLinks/{code} {
+      allow get: if isTeacher()
+        || (request.auth != null && resource.data.parentUid == request.auth.uid);
+      allow create: if request.auth != null
+        && request.resource.data.parentUid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['parentUid', 'childId']);
+      allow delete: if request.auth != null && resource.data.parentUid == request.auth.uid;
     }
 
     // Block all other access

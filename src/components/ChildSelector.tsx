@@ -5,6 +5,7 @@ import type { AppConfig } from '../types';
 import { Onboarding } from './Onboarding';
 import { ConfirmModal } from './ConfirmModal';
 import { STORAGE_KEY, CONFIG_KEY } from '../constants';
+import { countUnseenAlerts } from '../utils/school';
 
 interface ChildSelectorProps {
   userId: string;
@@ -16,6 +17,7 @@ interface ChildSummary {
   id: string;
   childName: string;
   stars: number;
+  alerts: number;
 }
 
 export function ChildSelector({ userId, onSelect, onLogout }: ChildSelectorProps) {
@@ -37,6 +39,7 @@ export function ChildSelector({ userId, onSelect, onLogout }: ChildSelectorProps
           id: d.id,
           childName: data.childName ?? 'ילד/ה',
           stars: data.stars ?? 0,
+          alerts: countUnseenAlerts(data.lessonMarks),
         });
       });
       setChildren(kids);
@@ -181,6 +184,11 @@ export function ChildSelector({ userId, onSelect, onLogout }: ChildSelectorProps
                   <span className="child-stars">
                     ⭐ {child.stars}
                   </span>
+                  {child.alerts > 0 && (
+                    <span className="child-alerts" title="דיווחים חדשים מהמורה">
+                      ⚠️ {child.alerts}
+                    </span>
+                  )}
                 </button>
                 <button
                   className="child-delete-btn"

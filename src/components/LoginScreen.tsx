@@ -5,9 +5,10 @@ import { auth } from '../firebase';
 interface LoginScreenProps {
   onLogin: (email: string, password: string) => Promise<void>;
   onRegister: (email: string, password: string) => Promise<void>;
+  onBack?: () => void;
 }
 
-export function LoginScreen({ onLogin, onRegister }: LoginScreenProps) {
+export function LoginScreen({ onLogin, onRegister, onBack }: LoginScreenProps) {
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -138,6 +139,12 @@ export function LoginScreen({ onLogin, onRegister }: LoginScreenProps) {
             }}
           >
             שכחתי סיסמה
+          </button>
+        )}
+
+        {onBack && (
+          <button className="modal-cancel login-forgot-btn" onClick={onBack}>
+            חזרה
           </button>
         )}
 

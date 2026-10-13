@@ -8,7 +8,7 @@ import {
   FieldPath,
 } from 'firebase/firestore';
 import { db } from '../firebase';
-import type { LessonMark, LessonMarks, StarHistoryEntry, TeacherInfo } from '../types';
+import type { LessonMark, LessonMarks, TeacherInfo } from '../types';
 
 export interface TeacherChildView {
   childName: string;
@@ -64,33 +64,24 @@ export function useTeacherChild(parentUid: string, childId: string) {
     [docRef],
   );
 
-  /** Set (or clear, with null) the mark for one lesson; keeps the star count in sync */
+  /**
+   * Set (or clear, with null) the mark for one lesson and keep the star balance
+   * in sync. lessonMarks is the teacher's record, so nothing goes into starHistory
+   * (that list is the parents' own history).
+   */
   const setMark = useCallback(
-    (date: string, lesson: number, mark: LessonMark | null, approver: string) =>
+    (date: string, lesson: number, mark: LessonMark | null) =>
       runTransaction(db, async (tx) => {
         const snap = await tx.get(docRef);
         if (!snap.exists()) throw new Error('child not found');
         const data = snap.data();
         const prev: LessonMark | undefined = data.lessonMarks?.[date]?.[String(lesson)];
         const delta = (mark?.type === 'star' ? 1 : 0) - (prev?.type === 'star' ? 1 : 0);
-
-        let stars: number = data.stars ?? 0;
-        let starHistory: StarHistoryEntry[] = data.starHistory ?? [];
-        if (delta !== 0) {
-          stars = Math.max(0, stars + delta);
-          const dateStr = new Date().toLocaleDateString('he-IL', {
-            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
-          });
-          starHistory = [
-            { action: delta > 0 ? ('add' as const) : ('remove' as const), date: dateStr, approver },
-            ...starHistory,
-          ].slice(0, 50);
-        }
+        const stars = Math.max(0, (data.stars ?? 0) + delta);
 
         tx.update(
           docRef,
           'stars', stars,
-          'starHistory', starHistory,
           new FieldPath('lessonMarks', date, String(lesson)), mark ?? deleteField(),
         );
       }),

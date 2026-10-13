@@ -53,6 +53,8 @@ export function ParentDashboard({
   const [saved, setSaved] = useState(false);
   const [confirmAction, setConfirmAction] = useState<null | 'reset' | 'fullReset'>(null);
   const unseenAlerts = countUnseenAlerts(teacherData.lessonMarks);
+  // Older versions logged teacher stars here too; the teacher's record is the school table now
+  const parentHistory = starHistory.filter((e) => !e.approver?.startsWith('המורה '));
 
   // Open straight on the teacher tab when there are new behavior reports
   useEffect(() => {
@@ -100,9 +102,9 @@ export function ParentDashboard({
 
   const tabs: { id: Tab; label: string; icon: string }[] = [
     { id: 'stars', label: 'כוכבים', icon: '⭐' },
-    { id: 'history', label: 'היסטוריה', icon: '📋' },
+    { id: 'history', label: 'הורים', icon: '👨‍👩‍👧' },
     { id: 'prizes', label: 'פרסים', icon: '🎁' },
-    { id: 'teacher', label: 'מורה', icon: '🧑‍🏫' },
+    { id: 'teacher', label: 'מורה', icon: '🏫' },
   ];
 
   return (
@@ -166,10 +168,10 @@ export function ParentDashboard({
           {activeTab === 'history' && (
             <div className="pd-section">
               <div className="pd-history-list">
-                {starHistory.length === 0 ? (
-                  <div className="pd-empty">אין היסטוריה עדיין</div>
+                {parentHistory.length === 0 ? (
+                  <div className="pd-empty">ההורים עדיין לא נתנו כוכבים</div>
                 ) : (
-                  starHistory.map((entry, i) => (
+                  parentHistory.map((entry, i) => (
                     <div key={i} className="pd-history-item">
                       <span className={`pd-history-badge ${entry.action}`}>
                         {entry.action === 'add' ? '+1 ⭐' : '-1 ❌'}

@@ -6,7 +6,7 @@ import { useSound } from '../hooks/useSound';
 
 interface TeacherDayProps {
   child: TeacherChildView & { teacher: NonNullable<TeacherChildView['teacher']> };
-  onSetMark: (date: string, lesson: number, mark: LessonMark | null, approver: string) => Promise<void>;
+  onSetMark: (date: string, lesson: number, mark: LessonMark | null) => Promise<void>;
   onEditSchedule: () => void;
   onBack: () => void;
   onLogout: () => void;
@@ -34,7 +34,7 @@ export function TeacherDay({ child, onSetMark, onEditSchedule, onBack, onLogout 
     setBusy(lesson);
     setError('');
     try {
-      await onSetMark(dayKey, lesson, mark, `המורה ${child.teacher.name} · שיעור ${lesson + 1}`);
+      await onSetMark(dayKey, lesson, mark);
       if (mark?.type === 'star') playSound('earn');
     } catch (err) {
       console.error('Setting lesson mark failed:', err);

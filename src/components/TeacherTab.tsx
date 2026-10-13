@@ -3,6 +3,7 @@ import type { TeacherData } from '../hooks/useChildData';
 import { SCHOOL_DAY_LETTERS, getBehaviorAlerts, formatShortDate, dayLetterOf } from '../utils/school';
 import { TEACHER_USERNAME } from '../constants';
 import { ConfirmModal } from './ConfirmModal';
+import { SchoolWeekTable } from './SchoolWeekTable';
 
 interface TeacherTabProps {
   childName: string;
@@ -41,6 +42,14 @@ export function TeacherTab({ childName, teacherData, onCreateCode, onMarkSeen, o
 
   return (
     <div className="pd-section">
+      {teacher && (
+        <>
+          <div className="pd-subtitle">🏫 כוכבים מהמורה</div>
+          <SchoolWeekTable teacher={teacher} lessonMarks={lessonMarks} />
+          <hr className="pd-divider" />
+        </>
+      )}
+
       <div className="pd-subtitle">⚠️ דיווחי התנהגות</div>
       {alerts.length === 0 ? (
         <div className="pd-empty">אין דיווחים מהמורה 🎉</div>

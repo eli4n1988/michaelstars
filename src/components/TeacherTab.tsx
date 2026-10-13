@@ -2,18 +2,21 @@ import { useState } from 'react';
 import type { TeacherData } from '../hooks/useChildData';
 import { SCHOOL_DAY_LETTERS, getBehaviorAlerts, formatShortDate, dayLetterOf } from '../utils/school';
 import { TEACHER_USERNAME } from '../constants';
+import { ConfirmModal } from './ConfirmModal';
 
 interface TeacherTabProps {
   childName: string;
   teacherData: TeacherData;
   onCreateCode: () => Promise<void>;
   onMarkSeen: (date: string, lesson: number) => Promise<void>;
+  onReset: () => Promise<void>;
 }
 
-export function TeacherTab({ childName, teacherData, onCreateCode, onMarkSeen }: TeacherTabProps) {
+export function TeacherTab({ childName, teacherData, onCreateCode, onMarkSeen, onReset }: TeacherTabProps) {
   const { teacherCode, teacher, lessonMarks } = teacherData;
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
+  const [confirmReset, setConfirmReset] = useState(false);
   const alerts = getBehaviorAlerts(lessonMarks);
 
   const handleCreate = async () => {
@@ -91,6 +94,37 @@ export function TeacherTab({ childName, teacherData, onCreateCode, onMarkSeen }:
         {creating ? '...' : teacherCode ? '🔄 צור קוד חדש' : '➕ צור קוד למורה'}
       </button>
       {error && <div className="pd-warning">{error}</div>}
+
+      {(teacher || teacherCode || alerts.length > 0 || Object.keys(lessonMarks).length > 0) && (
+        <>
+          <hr className="pd-divider" />
+          <button
+            className="pd-btn pd-btn-reset"
+            style={{ color: '#e53935' }}
+            onClick={() => setConfirmReset(true)}
+          >
+            🗑️ איפוס כל נתוני המורה
+          </button>
+        </>
+      )}
+
+      <ConfirmModal
+        isOpen={confirmReset}
+        title="🗑️ איפוס נתוני המורה"
+        message="למחוק את המורה, מערכת השעות, כל הסימונים והדיווחים, ואת קוד החיבור? (הכוכבים שנצברו נשארים — אפשר לאפס אותם בלשונית „כוכבים”)"
+        confirmText="מחק"
+        cancelText="ביטול"
+        danger
+        onConfirm={() => {
+          setConfirmReset(false);
+          setError('');
+          onReset().catch((err) => {
+            console.error('Teacher reset failed:', err);
+            setError('האיפוס נכשל. נסו שוב');
+          });
+        }}
+        onCancel={() => setConfirmReset(false)}
+      />
     </div>
   );
 }

@@ -20,6 +20,7 @@ interface ParentDashboardProps {
   teacherData: TeacherData;
   onCreateTeacherCode: () => Promise<void>;
   onMarkAlertSeen: (date: string, lesson: number) => Promise<void>;
+  onResetTeacherData: () => Promise<void>;
 }
 
 type Tab = 'history' | 'prizes' | 'stars' | 'teacher';
@@ -38,6 +39,7 @@ export function ParentDashboard({
   teacherData,
   onCreateTeacherCode,
   onMarkAlertSeen,
+  onResetTeacherData,
 }: ParentDashboardProps) {
   const [activeTab, setActiveTab] = useState<Tab>('stars');
   const [editSelected, setEditSelected] = useState<string[]>([...config.selectedRewards]);
@@ -188,6 +190,7 @@ export function ParentDashboard({
               teacherData={teacherData}
               onCreateCode={onCreateTeacherCode}
               onMarkSeen={onMarkAlertSeen}
+              onReset={onResetTeacherData}
             />
           )}
 

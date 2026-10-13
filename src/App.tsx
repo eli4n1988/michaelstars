@@ -89,7 +89,7 @@ interface StarChartProps {
 function StarChart({ userId, childId, onBack }: StarChartProps) {
   const {
     config, state, setConfig, setState, loading, writeError,
-    teacherData, createTeacherCode, markAlertSeen,
+    teacherData, createTeacherCode, markAlertSeen, resetTeacherData,
   } = useChildData(userId, childId);
   const unseenAlerts = countUnseenAlerts(teacherData.lessonMarks);
 
@@ -332,6 +332,7 @@ function StarChart({ userId, childId, onBack }: StarChartProps) {
         teacherData={teacherData}
         onCreateTeacherCode={createTeacherCode}
         onMarkAlertSeen={markAlertSeen}
+        onResetTeacherData={resetTeacherData}
       />
 
       <ParentApprovalModal

@@ -5,6 +5,7 @@ import {
   setDoc,
   deleteDoc,
   updateDoc,
+  deleteField,
   FieldPath,
 } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -173,8 +174,22 @@ export function useChildData(userId: string, childId: string) {
     [userId, childId],
   );
 
+  /** Remove the teacher, the schedule, all lesson marks and the link code */
+  const resetTeacherData = useCallback(async () => {
+    const oldCode = teacherData.teacherCode;
+    await updateDoc(docRef, {
+      teacher: deleteField(),
+      lessonMarks: deleteField(),
+      teacherCode: deleteField(),
+    });
+    if (oldCode) {
+      deleteDoc(doc(db, 'teacherLinks', oldCode)).catch(() => {});
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, childId, teacherData.teacherCode]);
+
   return {
     config, state, setConfig, setState, loading, writeError,
-    teacherData, createTeacherCode, markAlertSeen,
+    teacherData, createTeacherCode, markAlertSeen, resetTeacherData,
   };
 }

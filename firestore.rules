@@ -1,28 +1,44 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Shared teacher login (see TEACHER_EMAIL in src/constants.ts)
-    function isTeacher() {
-      return request.auth != null
-        && request.auth.token.email == 'teacher@michaelstars.app';
-    }
 
     match /users/{userId}/children/{childId} {
-      // Each parent can only read/write their own children's data
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      function isParent() {
+        return request.auth != null && request.auth.uid == userId;
+      }
+      function teacherUids() {
+        return resource.data.get('teacherUids', []);
+      }
+      function isJoinedTeacher() {
+        return request.auth != null && request.auth.uid in teacherUids();
+      }
+      function changed() {
+        return request.resource.data.diff(resource.data).affectedKeys();
+      }
 
-      // The teacher can open a child by its exact path (learned from a link code)
-      // and may only change the star / lesson fields
-      allow get: if isTeacher();
-      allow update: if isTeacher()
-        && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['stars', 'starHistory', 'teacher', 'lessonMarks']);
+      // Each parent can only read/write their own children's data
+      allow read, write: if isParent();
+
+      // A teacher device that joined with the link code can read the child
+      allow get: if isJoinedTeacher();
+
+      // ...and change only the lesson data, one star at a time
+      allow update: if isJoinedTeacher()
+        && changed().hasOnly(['stars', 'teacher', 'lessonMarks'])
+        && math.abs(request.resource.data.get('stars', 0) - resource.data.get('stars', 0)) <= 1;
+
+      // Joining: a signed-in device adds only its own uid, proving it knows the current code
+      allow update: if request.auth != null
+        && changed().hasOnly(['teacherUids', 'joinCode'])
+        && resource.data.get('teacherCode', null) != null
+        && request.resource.data.joinCode == resource.data.teacherCode
+        && request.resource.data.teacherUids.hasAll(teacherUids())
+        && request.resource.data.teacherUids.removeAll(teacherUids()).hasOnly([request.auth.uid]);
     }
 
-    // Link codes: parent creates one, teacher looks it up by code
+    // Link codes: the parent creates one, a teacher device looks it up by exact code
     match /teacherLinks/{code} {
-      allow get: if isTeacher()
-        || (request.auth != null && resource.data.parentUid == request.auth.uid);
+      allow get: if request.auth != null;
       allow create: if request.auth != null
         && request.resource.data.parentUid == request.auth.uid
         && request.resource.data.keys().hasOnly(['parentUid', 'childId']);

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { TEACHER_USERNAME, TEACHER_PASSWORD } from '../constants';
 
 interface TeacherLoginProps {
-  onLogin: (password: string) => Promise<void>;
+  onLogin: () => Promise<void>;
   onBack: () => void;
 }
 
@@ -20,7 +20,7 @@ export function TeacherLogin({ onLogin, onBack }: TeacherLoginProps) {
     }
     setLoading(true);
     try {
-      await onLogin(password);
+      await onLogin();
     } catch (err) {
       console.error('Teacher login failed:', err);
       setError('שגיאה בהתחברות. בדקו את חיבור האינטרנט ונסו שוב');

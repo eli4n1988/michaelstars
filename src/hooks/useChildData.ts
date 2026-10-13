@@ -14,7 +14,7 @@ import type { AppState, AppConfig, TeacherInfo, LessonMarks } from '../types';
 const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 
 function randomCode(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(6));
+  const bytes = crypto.getRandomValues(new Uint8Array(8));
   return Array.from(bytes, (b) => CODE_CHARS[b % CODE_CHARS.length]).join('');
 }
 
@@ -22,9 +22,11 @@ export interface TeacherData {
   teacherCode: string | null;
   teacher: TeacherInfo | null;
   lessonMarks: LessonMarks;
+  /** Anonymous uids of teacher devices that joined with the code */
+  teacherUids: string[];
 }
 
-const DEFAULT_TEACHER_DATA: TeacherData = { teacherCode: null, teacher: null, lessonMarks: {} };
+const DEFAULT_TEACHER_DATA: TeacherData = { teacherCode: null, teacher: null, lessonMarks: {}, teacherUids: [] };
 
 const DEFAULT_STATE: AppState = { stars: 0, history: [] };
 
@@ -81,6 +83,7 @@ export function useChildData(userId: string, childId: string) {
           teacherCode: data.teacherCode ?? null,
           teacher: data.teacher ?? null,
           lessonMarks: data.lessonMarks ?? {},
+          teacherUids: data.teacherUids ?? [],
         });
       } else {
         setTeacherData(DEFAULT_TEACHER_DATA);
@@ -174,13 +177,29 @@ export function useChildData(userId: string, childId: string) {
     [userId, childId],
   );
 
-  /** Remove the teacher, the schedule, all lesson marks and the link code */
+  /** Cut off every connected teacher device and cancel the link code */
+  const disconnectTeachers = useCallback(async () => {
+    const oldCode = teacherData.teacherCode;
+    await updateDoc(docRef, {
+      teacherUids: deleteField(),
+      joinCode: deleteField(),
+      teacherCode: deleteField(),
+    });
+    if (oldCode) {
+      deleteDoc(doc(db, 'teacherLinks', oldCode)).catch(() => {});
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, childId, teacherData.teacherCode]);
+
+  /** Remove the teacher, the schedule, all lesson marks, connected devices and the link code */
   const resetTeacherData = useCallback(async () => {
     const oldCode = teacherData.teacherCode;
     await updateDoc(docRef, {
       teacher: deleteField(),
       lessonMarks: deleteField(),
       teacherCode: deleteField(),
+      teacherUids: deleteField(),
+      joinCode: deleteField(),
     });
     if (oldCode) {
       deleteDoc(doc(db, 'teacherLinks', oldCode)).catch(() => {});
@@ -190,6 +209,6 @@ export function useChildData(userId: string, childId: string) {
 
   return {
     config, state, setConfig, setState, loading, writeError,
-    teacherData, createTeacherCode, markAlertSeen, resetTeacherData,
+    teacherData, createTeacherCode, markAlertSeen, resetTeacherData, disconnectTeachers,
   };
 }

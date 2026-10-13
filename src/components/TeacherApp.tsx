@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { db, auth } from '../firebase';
 import type { TeacherLink } from '../types';
 import { TEACHER_LINKS_KEY } from '../constants';
 import { useTeacherChild } from '../hooks/useTeacherChild';
@@ -130,7 +130,18 @@ function TeacherLinkScreen({ onLinked, onCancel, onLogout }: TeacherLinkScreenPr
         return;
       }
       const { parentUid, childId } = linkSnap.data() as { parentUid: string; childId: string };
-      const childSnap = await getDoc(doc(db, 'users', parentUid, 'children', childId));
+      const childRef = doc(db, 'users', parentUid, 'children', childId);
+      const uid = auth.currentUser?.uid;
+      if (!uid) throw new Error('not signed in');
+      // Register this device; the rules accept it only with the child's current code
+      try {
+        await updateDoc(childRef, { teacherUids: arrayUnion(uid), joinCode: clean });
+      } catch (err) {
+        console.error('Join failed:', err);
+        setError('הקוד כבר לא בתוקף. בקשו מההורים קוד חדש');
+        return;
+      }
+      const childSnap = await getDoc(childRef);
       if (!childSnap.exists()) {
         setError('התלמיד/ה לא נמצא/ה. בקשו מההורים קוד חדש');
         return;
@@ -160,7 +171,7 @@ function TeacherLinkScreen({ onLinked, onCancel, onLogout }: TeacherLinkScreenPr
           autoCorrect="off"
           dir="ltr"
           className="login-input-ltr tc-code-input"
-          maxLength={6}
+          maxLength={8}
         />
         <div className="error-msg">{error}</div>
         <button className="onboarding-btn" onClick={handleSubmit} disabled={loading}>
@@ -206,8 +217,8 @@ function TeacherStudent({ link, onBack, onRemove, onLogout }: TeacherStudentProp
       <div className="onboarding">
         <div className="onboarding-step">
           <h2>😕 לא נמצא</h2>
-          <p>אין גישה ל{link.childName}. ייתכן שההורים מחקו את הפרופיל.</p>
-          <button className="onboarding-btn" onClick={onRemove}>הסר מהמכשיר</button>
+          <p>אין גישה ל{link.childName}. ייתכן שההורים ניתקו את המכשיר — בקשו מהם קוד חיבור חדש.</p>
+          <button className="onboarding-btn" onClick={onRemove}>הזנת קוד חדש</button>
           <button className="modal-cancel" onClick={onBack}>חזרה</button>
         </div>
       </div>

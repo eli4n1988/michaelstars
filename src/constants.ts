@@ -15,8 +15,10 @@ export const ALL_REWARDS: Record<string, Reward> = {
   toy:      { name: 'צעצוע חדש', emoji: '🧸', cost: 5 },
 };
 
-// Shared teacher login. The username maps to a fixed Firebase Auth account.
+// Teacher entry screen. This is only a light gate (it ships in the public bundle):
+// each teacher device signs in anonymously and gets access to a child only after
+// joining with the parent's link code (see firestore.rules).
 export const TEACHER_USERNAME = 'teacher';
 export const TEACHER_PASSWORD = '123456';
-export const TEACHER_EMAIL = 'teacher@michaelstars.app';
-export const TEACHER_LINKS_KEY = 'teacherStudents';
+// v2: links from the old shared teacher account must be re-joined with a code
+export const TEACHER_LINKS_KEY = 'teacherStudents.v2';

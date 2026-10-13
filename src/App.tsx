@@ -21,7 +21,6 @@ import { SchoolWeekTable } from './components/SchoolWeekTable';
 import { RoleSelect } from './components/RoleSelect';
 import { TeacherLogin } from './components/TeacherLogin';
 import { TeacherApp } from './components/TeacherApp';
-import { TEACHER_EMAIL } from './constants';
 import { countUnseenAlerts } from './utils/school';
 
 type Role = 'parent' | 'teacher';
@@ -72,7 +71,7 @@ function App() {
     return <RoleSelect onSelect={setRole} />;
   }
 
-  const isTeacher = user?.email === TEACHER_EMAIL;
+  const isTeacher = user?.isAnonymous === true;
 
   if (role === 'teacher') {
     if (isTeacher) return <TeacherApp onLogout={handleLogout} />;
@@ -113,7 +112,7 @@ interface StarChartProps {
 function StarChart({ userId, childId, onBack }: StarChartProps) {
   const {
     config, state, setConfig, setState, loading, writeError,
-    teacherData, createTeacherCode, markAlertSeen, resetTeacherData,
+    teacherData, createTeacherCode, markAlertSeen, resetTeacherData, disconnectTeachers,
   } = useChildData(userId, childId);
   const unseenAlerts = countUnseenAlerts(teacherData.lessonMarks);
 
@@ -369,6 +368,7 @@ function StarChart({ userId, childId, onBack }: StarChartProps) {
         onCreateTeacherCode={createTeacherCode}
         onMarkAlertSeen={markAlertSeen}
         onResetTeacherData={resetTeacherData}
+        onDisconnectTeachers={disconnectTeachers}
       />
 
       <ParentApprovalModal

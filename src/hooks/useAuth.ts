@@ -4,10 +4,10 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
+  signInAnonymously,
   type User,
 } from 'firebase/auth';
 import { auth } from '../firebase';
-import { TEACHER_EMAIL } from '../constants';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
@@ -29,15 +29,9 @@ export function useAuth() {
     await createUserWithEmailAndPassword(auth, email, password);
   };
 
-  /** Sign in to the shared teacher account, creating it on first use */
-  const loginTeacher = async (password: string) => {
-    try {
-      await signInWithEmailAndPassword(auth, TEACHER_EMAIL, password);
-    } catch (err) {
-      const code = (err as { code?: string })?.code;
-      if (code !== 'auth/invalid-credential' && code !== 'auth/user-not-found') throw err;
-      await createUserWithEmailAndPassword(auth, TEACHER_EMAIL, password);
-    }
+  /** Each teacher device gets its own anonymous identity */
+  const loginTeacher = async () => {
+    await signInAnonymously(auth);
   };
 
   const logout = async () => {

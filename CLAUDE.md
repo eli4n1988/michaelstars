@@ -71,7 +71,7 @@ src/
 ## Teacher Mode
 
 - Every visit starts with a role choice (`RoleSelect`): parent or teacher, unless the URL hash picks one (`#parent`, `#teacher`). A remembered session for that role skips the login; choosing the other role shows its login, which replaces the current session.
-- Teacher login is shared: username `teacher` / password `123456` → Firebase account `TEACHER_EMAIL` (auto-created on first login). See `src/constants.ts`.
-- Linking: the parent creates a code in the dashboard's "מורה" tab → `teacherLinks/{code}` = `{parentUid, childId}`. The teacher enters the code once; linked students are kept in the teacher device's localStorage (`teacherStudents`).
+- Teacher login screen (`teacher` / `123456`, see `src/constants.ts`) is only a UI gate — it ships in the public bundle. Each teacher device then signs in with Firebase **anonymous auth** (must be enabled in the Firebase console).
+- Linking: the parent creates an 8-char code in the dashboard's "מורה" tab → `teacherLinks/{code}` = `{parentUid, childId}`, and the child doc gets `teacherCode`. The teacher device joins by adding its uid to the child's `teacherUids` together with `joinCode` (rules require `joinCode == teacherCode`). Linked students are kept in the device's localStorage (`teacherStudents.v2`). "נתק את כל המורים" clears `teacherUids` and the code.
 - Child doc fields written by the teacher: `teacher` (`{name, schedule[6]}`, Sun–Fri lesson counts), `lessonMarks[YYYY-MM-DD][lessonIndex]` (`star` | `bad` + optional note, `seen`), plus `stars`. Teacher marks go through a transaction in `useTeacherChild` and are not logged in `starHistory` (that is the parents' history; the parent dashboard shows teacher stars as a weekly table, `SchoolWeekTable`).
-- `firestore.rules` limits the teacher to `get` + updating only those fields. Deploy rules with `firebase deploy --only firestore:rules --project michaelstars-6b4a4`.
+- `firestore.rules` lets a joined teacher `get` the child and update only `stars` (±1 per write), `teacher` and `lessonMarks`. Deploy rules with `firebase deploy --only firestore:rules --project michaelstars-6b4a4`.

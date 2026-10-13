@@ -11,13 +11,15 @@ interface TeacherTabProps {
   onCreateCode: () => Promise<void>;
   onMarkSeen: (date: string, lesson: number) => Promise<void>;
   onReset: () => Promise<void>;
+  onDisconnect: () => Promise<void>;
 }
 
-export function TeacherTab({ childName, teacherData, onCreateCode, onMarkSeen, onReset }: TeacherTabProps) {
-  const { teacherCode, teacher, lessonMarks } = teacherData;
+export function TeacherTab({ childName, teacherData, onCreateCode, onMarkSeen, onReset, onDisconnect }: TeacherTabProps) {
+  const { teacherCode, teacher, lessonMarks, teacherUids } = teacherData;
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
   const [confirmReset, setConfirmReset] = useState(false);
+  const [confirmDisconnect, setConfirmDisconnect] = useState(false);
   const alerts = getBehaviorAlerts(lessonMarks);
 
   const handleCreate = async () => {
@@ -98,11 +100,23 @@ export function TeacherTab({ childName, teacherData, onCreateCode, onMarkSeen, o
       <div className="pd-help">
         המורה נכנס/ת בתור „מורה" (שם משתמש: <span dir="ltr">{TEACHER_USERNAME}</span>),
         מזין/ה את הקוד, ואז יכול/ה לתת ל{childName} כוכבים על כל שיעור.
+        שלחו את הקוד רק למורה.
+      </div>
+      <div className="pd-help">
+        {teacherUids.length === 0
+          ? 'אין מכשירי מורה מחוברים'
+          : `מכשירי מורה מחוברים: ${teacherUids.length}`}
       </div>
       <button className="pd-btn pd-btn-save" onClick={handleCreate} disabled={creating}>
         {creating ? '...' : teacherCode ? '🔄 צור קוד חדש' : '➕ צור קוד למורה'}
       </button>
       {error && <div className="pd-warning">{error}</div>}
+
+      {(teacherUids.length > 0 || teacherCode) && (
+        <button className="pd-btn pd-btn-reset" onClick={() => setConfirmDisconnect(true)}>
+          🔌 נתק את כל המורים
+        </button>
+      )}
 
       {(teacher || teacherCode || alerts.length > 0 || Object.keys(lessonMarks).length > 0) && (
         <>
@@ -116,6 +130,24 @@ export function TeacherTab({ childName, teacherData, onCreateCode, onMarkSeen, o
           </button>
         </>
       )}
+
+      <ConfirmModal
+        isOpen={confirmDisconnect}
+        title="🔌 ניתוק מורים"
+        message="לנתק את כל מכשירי המורה ולבטל את קוד החיבור? מערכת השעות והסימונים יישמרו. כדי לחבר שוב צרו קוד חדש."
+        confirmText="נתק"
+        cancelText="ביטול"
+        danger
+        onConfirm={() => {
+          setConfirmDisconnect(false);
+          setError('');
+          onDisconnect().catch((err) => {
+            console.error('Disconnect failed:', err);
+            setError('הניתוק נכשל. נסו שוב');
+          });
+        }}
+        onCancel={() => setConfirmDisconnect(false)}
+      />
 
       <ConfirmModal
         isOpen={confirmReset}

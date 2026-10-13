@@ -23,14 +23,35 @@ import { TeacherApp } from './components/TeacherApp';
 import { TEACHER_EMAIL } from './constants';
 import { countUnseenAlerts } from './utils/school';
 
+type Role = 'parent' | 'teacher';
+
+/** Role from the URL: …/michaelstars/#parent or …/michaelstars/#teacher */
+function roleFromHash(): Role | null {
+  const h = window.location.hash.replace(/^#\/?/, '').toLowerCase();
+  return h === 'parent' || h === 'teacher' ? h : null;
+}
+
 function App() {
   const { user, loading: authLoading, login, register, loginTeacher, logout } = useAuth();
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
-  const [role, setRole] = useState<'parent' | 'teacher' | null>(null);
+  const [role, setRoleState] = useState<Role | null>(roleFromHash);
 
+  // Keep the URL in sync so each role has its own link
+  const setRole = (next: Role | null) => {
+    setRoleState(next);
+    const { pathname, search } = window.location;
+    window.history.replaceState(null, '', next ? `${pathname}${search}#${next}` : `${pathname}${search}`);
+  };
+
+  useEffect(() => {
+    const onHashChange = () => setRoleState(roleFromHash());
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  // Stay on the same role's login after logging out
   const handleLogout = async () => {
     setSelectedChildId(null);
-    setRole(null);
     await logout();
   };
 

@@ -45,18 +45,20 @@ function App() {
     );
   }
 
-  if (!user) {
-    if (role === 'parent') {
-      return <LoginScreen onLogin={login} onRegister={register} onBack={() => setRole(null)} />;
-    }
-    if (role === 'teacher') {
-      return <TeacherLogin onLogin={loginTeacher} onBack={() => setRole(null)} />;
-    }
+  // Every visit starts by choosing a role, even when a session is remembered
+  if (!role) {
     return <RoleSelect onSelect={setRole} />;
   }
 
-  if (user.email === TEACHER_EMAIL) {
-    return <TeacherApp onLogout={handleLogout} />;
+  const isTeacher = user?.email === TEACHER_EMAIL;
+
+  if (role === 'teacher') {
+    if (isTeacher) return <TeacherApp onLogout={handleLogout} />;
+    return <TeacherLogin onLogin={loginTeacher} onBack={() => setRole(null)} />;
+  }
+
+  if (!user || isTeacher) {
+    return <LoginScreen onLogin={login} onRegister={register} onBack={() => setRole(null)} />;
   }
 
   if (!selectedChildId) {

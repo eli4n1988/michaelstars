@@ -70,7 +70,7 @@ src/
 
 ## Teacher Mode
 
-- Signed-out users first pick a role (`RoleSelect`): parent (Firebase email login) or teacher.
+- Every visit starts with a role choice (`RoleSelect`): parent or teacher. A remembered session for that role skips the login; choosing the other role shows its login, which replaces the current session.
 - Teacher login is shared: username `teacher` / password `123456` → Firebase account `TEACHER_EMAIL` (auto-created on first login). See `src/constants.ts`.
 - Linking: the parent creates a code in the dashboard's "מורה" tab → `teacherLinks/{code}` = `{parentUid, childId}`. The teacher enters the code once; linked students are kept in the teacher device's localStorage (`teacherStudents`).
 - Child doc fields written by the teacher: `teacher` (`{name, schedule[6]}`, Sun–Fri lesson counts), `lessonMarks[YYYY-MM-DD][lessonIndex]` (`star` | `bad` + optional note, `seen`), plus `stars`/`starHistory`. Teacher marks go through a transaction in `useTeacherChild`.

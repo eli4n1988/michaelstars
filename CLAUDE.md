@@ -14,6 +14,15 @@ npm run dev      # Dev server with HMR
 npm run build    # Production build to dist/
 ```
 
+Local testing without touching production data (needs Java: `brew install openjdk`):
+
+```bash
+PATH="/opt/homebrew/opt/openjdk/bin:$PATH" firebase emulators:start --only auth,firestore --project michaelstars-6b4a4
+VITE_EMULATOR=1 npm run dev   # connects to the emulators (dev only, see src/firebase.ts)
+```
+
+Production builds reload themselves when a newer build is published (`src/utils/autoUpdate.ts`), because phones keep stale tabs open for days.
+
 The original vanilla JS version is preserved in `stars.html`.
 
 ## Architecture

@@ -60,4 +60,6 @@ export interface TeacherLink {
   parentUid: string;
   childId: string;
   childName: string;
+  /** Link code used to join (lets a personal link re-join after the session is lost) */
+  code?: string;
 }

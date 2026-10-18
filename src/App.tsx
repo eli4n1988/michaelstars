@@ -25,33 +25,44 @@ import { countUnseenAlerts } from './utils/school';
 
 type Role = 'parent' | 'teacher';
 
-/** Role from the URL: …/michaelstars/#parent or …/michaelstars/#teacher */
-function roleFromHash(): Role | null {
-  const h = window.location.hash.replace(/^#\/?/, '').toLowerCase();
-  return h === 'parent' || h === 'teacher' ? h : null;
+/**
+ * Role from the URL: …/michaelstars/#parent, …/#teacher, or a teacher's personal
+ * link …/#teacher/CODE that signs in and joins with the code automatically.
+ */
+function parseHash(): { role: Role | null; inviteCode: string | null } {
+  const [rawRole, rawCode] = window.location.hash.replace(/^#\/?/, '').split('/');
+  const role = rawRole?.toLowerCase();
+  if (role === 'parent') return { role, inviteCode: null };
+  if (role === 'teacher') {
+    const code = rawCode && /^[A-Za-z0-9]{4,12}$/.test(rawCode) ? rawCode.toUpperCase() : null;
+    return { role, inviteCode: code };
+  }
+  return { role: null, inviteCode: null };
 }
 
 function App() {
   const { user, loading: authLoading, login, register, loginTeacher, logout } = useAuth();
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
-  const [role, setRoleState] = useState<Role | null>(roleFromHash);
+  const [{ role, inviteCode }, setHashState] = useState(parseHash);
 
   // Keep the URL in sync so each role has its own link
   const setRole = (next: Role | null) => {
-    setRoleState(next);
+    setHashState({ role: next, inviteCode: null });
     const { pathname, search } = window.location;
     window.history.replaceState(null, '', next ? `${pathname}${search}#${next}` : `${pathname}${search}`);
   };
 
   useEffect(() => {
-    const onHashChange = () => setRoleState(roleFromHash());
+    const onHashChange = () => setHashState(parseHash());
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
-  // Stay on the same role's login after logging out
+  // Stay on the same role's login after logging out (dropping a personal link's
+  // code, so logging out doesn't sign straight back in)
   const handleLogout = async () => {
     setSelectedChildId(null);
+    if (role) setRole(role);
     await logout();
   };
 
@@ -74,7 +85,9 @@ function App() {
   const isTeacher = user?.isAnonymous === true;
 
   if (role === 'teacher') {
-    if (isTeacher) return <TeacherApp onLogout={handleLogout} />;
+    if (isTeacher) return <TeacherApp onLogout={handleLogout} inviteCode={inviteCode} />;
+    // A personal link carries the code (the real key), so skip the password screen
+    if (inviteCode) return <AutoTeacherLogin onLogin={loginTeacher} onFallback={() => setRole('teacher')} />;
     return <TeacherLogin onLogin={loginTeacher} onBack={() => setRole(null)} />;
   }
 
@@ -98,6 +111,39 @@ function App() {
       childId={selectedChildId}
       onBack={() => setSelectedChildId(null)}
     />
+  );
+}
+
+// ─── Signs a teacher in automatically when opened from a personal link ─────
+
+function AutoTeacherLogin({ onLogin, onFallback }: { onLogin: () => Promise<void>; onFallback: () => void }) {
+  const [failed, setFailed] = useState(false);
+  const started = useRef(false);
+
+  useEffect(() => {
+    if (started.current) return; // StrictMode runs effects twice; sign in only once
+    started.current = true;
+    onLogin().catch((err) => {
+      console.error('Automatic teacher sign-in failed:', err);
+      setFailed(true);
+    });
+  }, [onLogin]);
+
+  return (
+    <div className="onboarding">
+      <div className="onboarding-step">
+        {failed ? (
+          <>
+            <h2>😕 לא הצלחנו להתחבר</h2>
+            <p>בדקו את חיבור האינטרנט ונסו שוב</p>
+            <button className="onboarding-btn" onClick={() => window.location.reload()}>נסו שוב</button>
+            <button className="modal-cancel" onClick={onFallback}>כניסה עם שם משתמש</button>
+          </>
+        ) : (
+          <h2>⭐ מתחבר...</h2>
+        )}
+      </div>
+    </div>
   );
 }
 

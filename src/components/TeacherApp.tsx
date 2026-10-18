@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import type { TeacherLink } from '../types';
@@ -17,17 +17,57 @@ function loadLinks(): TeacherLink[] {
   }
 }
 
-interface TeacherAppProps {
-  onLogout: () => void;
+/** Thrown by joinWithCode with a message to show the teacher */
+class JoinError extends Error {}
+
+/**
+ * Join a child with a link code: look the code up, register this device in the
+ * child's teacherUids (the rules accept it only with the current code), and
+ * return the link to remember. Safe to repeat.
+ */
+async function joinWithCode(rawCode: string): Promise<TeacherLink> {
+  const code = rawCode.trim().toUpperCase();
+  const linkSnap = await getDoc(doc(db, 'teacherLinks', code));
+  if (!linkSnap.exists()) throw new JoinError('הקוד לא נמצא או שכבר לא בתוקף. בקשו מההורים קוד חדש');
+  const { parentUid, childId } = linkSnap.data() as { parentUid: string; childId: string };
+  const childRef = doc(db, 'users', parentUid, 'children', childId);
+  const uid = auth.currentUser?.uid;
+  if (!uid) throw new Error('not signed in');
+  try {
+    await updateDoc(childRef, { teacherUids: arrayUnion(uid), joinCode: code });
+  } catch (err) {
+    console.error('Join failed:', err);
+    throw new JoinError('הקוד כבר לא בתוקף. בקשו מההורים קוד חדש');
+  }
+  const childSnap = await getDoc(childRef);
+  if (!childSnap.exists()) throw new JoinError('התלמיד/ה לא נמצא/ה. בקשו מההורים קוד חדש');
+  return { parentUid, childId, childName: childSnap.data().childName ?? 'תלמיד/ה', code };
 }
 
-export function TeacherApp({ onLogout }: TeacherAppProps) {
+function joinErrorMessage(err: unknown): string {
+  if (err instanceof JoinError) return err.message;
+  console.error('Linking failed:', err);
+  return 'שגיאה בחיבור. בדקו את חיבור האינטרנט ונסו שוב';
+}
+
+interface TeacherAppProps {
+  onLogout: () => void;
+  /** Code from a personal link (…/#teacher/CODE): join automatically */
+  inviteCode?: string | null;
+}
+
+export function TeacherApp({ onLogout, inviteCode }: TeacherAppProps) {
   const [links, setLinks] = useState<TeacherLink[]>(loadLinks);
   const [activeId, setActiveId] = useState<string | null>(() => {
     const initial = loadLinks();
     return initial.length === 1 ? initial[0].childId : null;
   });
   const [adding, setAdding] = useState(false);
+  const [autoJoin, setAutoJoin] = useState<'running' | 'done'>(inviteCode ? 'running' : 'done');
+  const [autoJoinError, setAutoJoinError] = useState('');
+  const autoJoinStarted = useRef(false);
+  // Bumped after a silent re-join so the student view resubscribes
+  const [rejoinCount, setRejoinCount] = useState(0);
 
   useEffect(() => {
     try {
@@ -43,6 +83,28 @@ export function TeacherApp({ onLogout }: TeacherAppProps) {
     setAdding(false);
   };
 
+  // Personal link: (re)join on every open, so a device that lost its sign-in
+  // or its saved students goes straight back to the lessons
+  useEffect(() => {
+    if (!inviteCode || autoJoinStarted.current) return;
+    autoJoinStarted.current = true;
+    joinWithCode(inviteCode)
+      .then(handleLinked)
+      .catch((err) => {
+        setAutoJoinError(joinErrorMessage(err));
+        setAdding(true);
+      })
+      .finally(() => setAutoJoin('done'));
+  }, [inviteCode]);
+
+  if (autoJoin === 'running') {
+    return (
+      <div className="onboarding">
+        <div className="onboarding-step"><h2>⭐ מתחבר...</h2></div>
+      </div>
+    );
+  }
+
   const handleRemove = (childId: string) => {
     setLinks((prev) => prev.filter((l) => l.childId !== childId));
     setActiveId(null);
@@ -51,6 +113,7 @@ export function TeacherApp({ onLogout }: TeacherAppProps) {
   if (adding || links.length === 0) {
     return (
       <TeacherLinkScreen
+        initialError={autoJoinError}
         onLinked={handleLinked}
         onCancel={links.length > 0 ? () => setAdding(false) : undefined}
         onLogout={onLogout}
@@ -62,8 +125,9 @@ export function TeacherApp({ onLogout }: TeacherAppProps) {
   if (active) {
     return (
       <TeacherStudent
-        key={active.childId}
+        key={`${active.childId}-${rejoinCount}`}
         link={active}
+        onRejoined={() => setRejoinCount((n) => n + 1)}
         onBack={() => setActiveId(null)}
         onRemove={() => handleRemove(active.childId)}
         onLogout={onLogout}
@@ -105,14 +169,15 @@ export function TeacherApp({ onLogout }: TeacherAppProps) {
 // ─── Link a student using the code from the parent dashboard ───────────────
 
 interface TeacherLinkScreenProps {
+  initialError?: string;
   onLinked: (link: TeacherLink) => void;
   onCancel?: () => void;
   onLogout: () => void;
 }
 
-function TeacherLinkScreen({ onLinked, onCancel, onLogout }: TeacherLinkScreenProps) {
+function TeacherLinkScreen({ initialError, onLinked, onCancel, onLogout }: TeacherLinkScreenProps) {
   const [code, setCode] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState(initialError ?? '');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
@@ -124,32 +189,9 @@ function TeacherLinkScreen({ onLinked, onCancel, onLogout }: TeacherLinkScreenPr
     setError('');
     setLoading(true);
     try {
-      const linkSnap = await getDoc(doc(db, 'teacherLinks', clean));
-      if (!linkSnap.exists()) {
-        setError('הקוד לא נמצא. בדקו עם ההורים');
-        return;
-      }
-      const { parentUid, childId } = linkSnap.data() as { parentUid: string; childId: string };
-      const childRef = doc(db, 'users', parentUid, 'children', childId);
-      const uid = auth.currentUser?.uid;
-      if (!uid) throw new Error('not signed in');
-      // Register this device; the rules accept it only with the child's current code
-      try {
-        await updateDoc(childRef, { teacherUids: arrayUnion(uid), joinCode: clean });
-      } catch (err) {
-        console.error('Join failed:', err);
-        setError('הקוד כבר לא בתוקף. בקשו מההורים קוד חדש');
-        return;
-      }
-      const childSnap = await getDoc(childRef);
-      if (!childSnap.exists()) {
-        setError('התלמיד/ה לא נמצא/ה. בקשו מההורים קוד חדש');
-        return;
-      }
-      onLinked({ parentUid, childId, childName: childSnap.data().childName ?? 'תלמיד/ה' });
+      onLinked(await joinWithCode(clean));
     } catch (err) {
-      console.error('Linking failed:', err);
-      setError('שגיאה בחיבור. בדקו את חיבור האינטרנט ונסו שוב');
+      setError(joinErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -191,20 +233,31 @@ function TeacherLinkScreen({ onLinked, onCancel, onLogout }: TeacherLinkScreenPr
 
 interface TeacherStudentProps {
   link: TeacherLink;
+  onRejoined: () => void;
   onBack: () => void;
   onRemove: () => void;
   onLogout: () => void;
 }
 
-function TeacherStudent({ link, onBack, onRemove, onLogout }: TeacherStudentProps) {
+function TeacherStudent({ link, onRejoined, onBack, onRemove, onLogout }: TeacherStudentProps) {
   const { child, loading, saveTeacher, setMark } = useTeacherChild(link.parentUid, link.childId);
   const [editing, setEditing] = useState(false);
+  // No access (e.g. the device lost its sign-in): try once more with the saved code
+  const [rejoinFailed, setRejoinFailed] = useState(false);
+  const rejoinStarted = useRef(false);
+  const lostAccess = !loading && !child;
+
+  useEffect(() => {
+    if (!lostAccess || !link.code || rejoinStarted.current) return;
+    rejoinStarted.current = true;
+    joinWithCode(link.code).then(onRejoined, () => setRejoinFailed(true));
+  }, [lostAccess, link.code, onRejoined]);
 
   useEffect(() => {
     if (child) document.title = `הכוכבים של ${child.childName} — מורה`;
   }, [child]);
 
-  if (loading) {
+  if (loading || (lostAccess && link.code && !rejoinFailed)) {
     return (
       <div className="onboarding">
         <div className="onboarding-step"><h2>⭐ טוען...</h2></div>

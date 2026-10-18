@@ -1752,6 +1752,30 @@ h1 {
 .swt-tile-label { font-size: 0.9rem; color: #666; font-weight: 600; }
 .swt-table td.swt-bad.no-notes { cursor: default; }
 
+/* ── Parent: teacher personal link ── */
+.pd-link {
+  font-size: 0.78rem;
+  color: #666;
+  background: #f7f7f7;
+  border-radius: 10px;
+  padding: 8px 10px;
+  word-break: break-all;
+  user-select: all;
+  text-align: left;
+}
+.pd-link-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.pd-btn-whatsapp {
+  display: block;
+  background: #25d366;
+  color: #fff;
+  text-align: center;
+  text-decoration: none;
+}
+
 /* ── Responsive ── */
 @media (max-width: 600px) {
   h1 { font-size: 1.8rem; }

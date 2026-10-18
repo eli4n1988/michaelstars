@@ -20,6 +20,22 @@ export function TeacherTab({ childName, teacherData, onCreateCode, onMarkSeen, o
   const [error, setError] = useState('');
   const [confirmReset, setConfirmReset] = useState(false);
   const [confirmDisconnect, setConfirmDisconnect] = useState(false);
+  const [copied, setCopied] = useState(false);
+  // Personal link: opening it signs the teacher in and joins with the code automatically
+  const teacherLink = teacherCode
+    ? `${window.location.origin}${window.location.pathname}#teacher/${teacherCode}`
+    : '';
+  const whatsappText = `שלום! זה הקישור ללוח הכוכבים של ${childName} — אפשר לשמור אותו ולהיכנס דרכו בכל פעם: ${teacherLink}`;
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(teacherLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setError('ההעתקה נכשלה — סמנו את הקישור והעתיקו ידנית');
+    }
+  };
   const alerts = getBehaviorAlerts(lessonMarks);
 
   const handleCreate = async () => {
@@ -95,12 +111,29 @@ export function TeacherTab({ childName, teacherData, onCreateCode, onMarkSeen, o
 
       <div className="pd-subtitle">🔗 קוד חיבור למורה</div>
       {teacherCode ? (
-        <div className="pd-code" dir="ltr">{teacherCode}</div>
+        <>
+          <div className="pd-code" dir="ltr">{teacherCode}</div>
+          <div className="pd-link" dir="ltr">{teacherLink}</div>
+          <div className="pd-link-actions">
+            <button className="pd-btn pd-btn-reset" onClick={handleCopy}>
+              {copied ? '✓ הועתק' : '📋 העתק קישור'}
+            </button>
+            <a
+              className="pd-btn pd-btn-whatsapp"
+              href={`https://wa.me/?text=${encodeURIComponent(whatsappText)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              💬 שלח בוואטסאפ
+            </a>
+          </div>
+        </>
       ) : null}
       <div className="pd-help">
-        המורה נכנס/ת בתור „מורה" (שם משתמש: <span dir="ltr">{TEACHER_USERNAME}</span>),
-        מזין/ה את הקוד, ואז יכול/ה לתת ל{childName} כוכבים על כל שיעור.
-        שלחו את הקוד רק למורה.
+        הכי פשוט: שלחו למורה את הקישור האישי — הוא מחבר אוטומטית, בלי סיסמה ובלי קוד,
+        גם אם המכשיר „שכח" את הכניסה. אפשר גם להיכנס בתור „מורה" (שם משתמש:{' '}
+        <span dir="ltr">{TEACHER_USERNAME}</span>) ולהזין את הקוד.
+        שלחו את הקישור והקוד רק למורה.
       </div>
       <div className="pd-help">
         {teacherUids.length === 0

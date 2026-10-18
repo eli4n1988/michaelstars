@@ -17,3 +17,6 @@ dist/
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# Firebase emulator logs
+*-debug.log
